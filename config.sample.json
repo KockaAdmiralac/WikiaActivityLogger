@@ -1,0 +1,16 @@
+{
+	"community": {
+		"transport": {
+			"type": "webhook",
+			"platform": "discord",
+			"id": "123456789",
+			"token": "aosBaAodia-oIA9DAkasd-9jASdlkAdu-7Askanadki-IASd8Asnak"
+		},
+		"shortname": "c",
+		"excludeuser": "KockaBot",
+		"threadfetch": {
+			"method": "dpl",
+			"offset": "10"
+		}
+	}
+}
