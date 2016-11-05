@@ -11,7 +11,7 @@ let Wiki = function(name, config) {
     }
     if(typeof config.transport === 'object' && typeof config.transport.platform === 'string') {
         let Transport = require(`./transports/${config.transport.platform}.js`);
-        this.transport = new Transport(config.transport);
+        this.transport = new Transport(config.transport, name);
         if(typeof this.transport.send !== 'function') {
             throw new Error('Given transport does not utilize `send` method! (Wiki.constructor)');
         }
@@ -51,17 +51,17 @@ Wiki.prototype.formatMessage = function(args) {
 };
 
 Wiki.prototype.link = function(page) {
-    return `http://${this.config.shortname || this.name}.wikia.com/wiki/${encodeURIComponent(page.replace(/ /g, '_')).replace(/%3A/g, ':')}`;
+    return `http://${this.config.shortname || this.name}.wikia.com/wiki/${encodeURIComponent(page.replace(/ /g, '_')).replace(/%3A/g, ':').replace(/%2F/g, '/')}`;
 };
 
 Wiki.prototype.threadLink = function(page) {
     let split = page.split('/'),
         threadPage = `${split[0]}/${split[1]}`;
-    return this.link(`Thread:${this.threadCache[threadPage] || page.split(':')[1]}`);
+    return this.link(this.threadCache[threadPage] ? `Thread:${this.threadCache[threadPage]}` : page);
 };
 
 Wiki.prototype.boardLink = function(page, ns) {
-    return this.link(`${ns === 1201 ? 'Message Wall' : 'Board'}:${page.split(':')[1].split('/')[0]}`);
+    return this.link(`${ns === 1201 ? 'Message_Wall' : 'Board'}:${page.split(':')[1].split('/')[0]}`);
 };
 
 Wiki.prototype.diff = function(id) {
@@ -237,7 +237,7 @@ Wiki.prototype.handle = function (info) {
         case 'new':
             // Not a log
             return (info.ns === 1201 || info.ns === 2001) ?
-                ['newthread', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns)] :
+                ['newthread', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns), info.comment] :
                 ['new', info.user, this.link(info.title), info.comment];
         case 'edit':
             // Not a log
@@ -250,63 +250,76 @@ Wiki.prototype.handle = function (info) {
             }
             switch(info.logaction) {
                 // Why Wikia, why
-                case 'wall_remove': return ['threadremove', info.user, this.threadLink(info.title), this.boardLink(info.title), info.comment];
-                case 'wall_admindelete': return ['threaddelete', info.user, this.threadLink(info.title), this.boardLink(info.title), info.comment];
+                case 'wall_remove': return ['threadremove', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns), info.comment];
+                case 'wall_admindelete': return ['threaddelete', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns), info.comment];
             }
+            break;
         case 'block':
             switch(info.action) {
                 case 'block':
                 case 'reblock': return [info.action, info.user, info.title, info.block.duration, info.block.flags, info.comment];
                 case 'unblock': return ['unblock', info.user];
             }
+            break;
         case 'newusers': return ['newusers', info.user];
         case 'useravatar':
             switch(info.action) {
                 case 'avatar_chn': return ['avatar', info.user];
-                case 'avatar_rem': return ['remavatar', info.user];
+                case 'avatar_rem': return ['remavatar', info.user, info.title];
             }
+            break;
         case 'delete':
             switch(info.action) {
                 case 'delete': return ['delete', info.user, info.title, info.comment];
-                case 'revisions': return ['revdel', info.user, info.title, info.comment]; // TODO
-                case 'event': return ['logdel', info.user, info.comment]; // TODO
+                case 'revisions': return ['debug', JSON.stringify(info)]; // TODO
+                case 'event': return ['debug', JSON.stringify(info)]; // TODO
                 case 'restore': return ['restore', info.user, this.link(info.title), info.comment];
             }
-        case 'patrol':
-            // Not going to handle this
             break;
+        case 'patrol': break; // Not going to handle this
         case 'move':
-            return ['move', info.user, this.link(info.title), this.link(info.move.new_title), info.comment];
+            // TODO: move_redir
+            switch(info.action) {
+                case 'move': return ['move', info.user, this.link(info.title), this.link(info.move.new_title), info.comment];
+                case 'move_redir': return ['debug', JSON.stringify(info)];
+            }
+            break;
         case 'rights':
+            // TODO: autopromote, erevoke
+            if(info.action === 'autopromote' || info.action === 'erevoke') {
+                console.log(info);
+            }
             return ['rights', info.user, info.title, info.rights.old, info.rights.new, info.comment];
         case 'upload':
             switch(info.action) {
                 case 'upload': return ['upload', info.user, this.link(info.title), info.comment];
                 case 'overwrite': return ['reupload', info.user, this.link(info.title)];
-                case 'revert': return ['revupload', info.user, this.link(info.title)];
+                case 'revert': return ['debug', JSON.stringify(info)]; // TODO
             }
+            break;
         case 'chatban':
             switch(info.action) {
                 case 'chatbanadd':
                 case 'chatbanchange': return [info.action, info.user, info.title, info[2], info.comment];
+                case 'chatbanremove': return ['chatbanremove', info.user, info.title, info.comment];
             }
+            break;
         case 'protect':
+            // Ignore action == move_prot
             switch(info.action) {
-                case 'protect':
-                case 'reprotect': return [info.action, info.user, info.title, info[0], info.comment]; // TODO
+                case 'protect': return ['protect', info.user, info.title, info[0], info.comment];
+                case 'modify': return ['reprotect', info.user, info.title, info[0], info.comment]; // TODO
                 case 'unprotect': return ['unprotect', info.user, info.title, info.comment];
             }
-        case 'merge':
-            // TODO
             break;
-        case 'abusefilter':
-            // TODO
-            break;
-        case 'wikifeatures':
-            // TODO
-            break;
+        case 'merge': return ['merge', info.title, this.link(info[0]), this.comment];
+        case 'abusefilter': return ['abusefilter', info.user, this.link(info.title)];
+        case 'wikifeatures': return ['wikifeatures', info.user, info.comment];
         case 'import':
-            // TODO
+            switch(info.action) {
+                case 'interwiki': return ['debug', JSON.stringify(info)];
+                case 'upload': return ['import', info.user, this.link(info.title), info.comment]; // TODO
+            }
             break;
     }
 };

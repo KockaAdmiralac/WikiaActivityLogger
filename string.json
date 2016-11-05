@@ -9,6 +9,7 @@
     "unblock": "$1 unblocked $2 ($3)",
     "reblock": "$1 changed block for $2 to $3 ($4)",
     "protect": "$1 protected $2 to $3 ($4)",
+    "reprotect": "$1 reprotected $2 to $3 ($4)",
     "unprotect": "$1 unprotected $2 ($3)",
     "rights": "$1 changed rights for $2 from $3 to $4 ($5)",
     "delete": "$1 deleted $2 ($3)",
@@ -21,14 +22,15 @@
     "move": "$1 moved $2 to $3 ($4)",
     "import": "$1 imported $2 ($3)",
     "patrol": "$1 patrolled revision on $2",
-    "merge": "$1 merged histories of $2 and $3",
+    "merge": "$1 merged histories of $2 and $3 ($4)",
     "avatar": "$1 changed avatar",
     "remavatar": "$1 removed avatar of $2",
     "abusefilter": "$1 modified abuse filter $2",
     "newusers": "$1 created an account",
-    "wikifeatures": "$1 changed wiki feature $2",
+    "wikifeatures": "$1 changed wiki feature: $2",
     "chatbanadd": "$1 banned $2 from chat for $3 ($4)",
     "chatbanchange": "$1 changed the chat ban for $2 to $3 ($4)",
     "chatbanremove": "$1 has ended the chat ban for $2 ($3)",
-    "renameuser": "$1 renamed a user ($2)"
+    "renameuser": "$1 renamed a user ($2)",
+    "debug": "Debug: $1"
 }

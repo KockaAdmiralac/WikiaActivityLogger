@@ -1,7 +1,7 @@
 'use strict';
 const io = require('../io.js');
 
-var Discord = function(config) {
+var Discord = function(config, wikiname) {
     if(!(this instanceof Discord)) {
 		throw new Error('This isn\'t a static class! (Discord.constructor)');
 	}
@@ -11,6 +11,7 @@ var Discord = function(config) {
     if(typeof config.id === 'string' && typeof config.token === 'string') {
         this.url = `https://discordapp.com/api/webhooks/${config.id}/${config.token}`;
     }
+    this.wikiname = wikiname;
 };
 
 Discord.prototype.escapeMessage = function(message) {
@@ -20,7 +21,9 @@ Discord.prototype.escapeMessage = function(message) {
 };
 
 Discord.prototype.send = function(message) {
-    io.post(this.url, { content: this.escapeMessage(message) });
+    io.post(this.url, {
+        content: this.escapeMessage(message)
+    });
 };
 
 module.exports = Discord; // jshint ignore: line
