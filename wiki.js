@@ -20,6 +20,7 @@ let Wiki = function(name, config) {
     }
     this.name = name;
     this.config = config;
+    this.fetch = (this.config.fetch || ['rc', 'log']).map(this.dispatchFetcher.bind(this));
     this.threadCache = {};
     this.log('Fetching threads...');
     this.afterFetch();
@@ -95,7 +96,6 @@ Wiki.prototype.fetchThreadsAPI = function(apfrom, forum) {
         data.query.allpages.filter((el) => el.title.split('/').length > 2).forEach((el) => {
             this.threadCache[el.title] = el.pageid;
         }, this);
-        console.log(data.query.allpages[0].title);
         if(data['query-continue'] && data['query-continue'].allpages && typeof data['query-continue'].allpages.apfrom === 'string') {
             this.fetchThreadsAPI(data['query-continue'].allpages.apfrom, forum);
         } else if(!forum) {
@@ -179,7 +179,7 @@ Wiki.prototype.fetchRC = function() {
             let rc = data.query.recentchanges,
                 rcdate = new Date(this.rcend);
             if(typeof this.rcend === 'string') {
-                rc = rc.filter((function(el) { return new Date(el.timestamp) > rcdate; }).bind(this));
+                rc = rc.filter((el) => new Date(el.timestamp) > rcdate);
             }
             this.rcend = data.query.recentchanges[0].timestamp;
             return rc;
@@ -203,37 +203,83 @@ Wiki.prototype.fetchLog = function() {
     }
     return this.api('query', options, function(data) {
         if(data.query && data.query.logevents instanceof Array) {
-            var log = data.query.logevents;
+            var log = data.query.logevents,
+                logdate = new Date(this.leend);
             if(typeof this.leend === 'string') {
-                log = log.filter((function(el) { return el.timestamp !== this.leend; }).bind(this));
+                log = log.filter((el) => new Date(el.timestamp) > logdate);
             }
             this.leend = data.query.logevents[0].timestamp;
             return log;
         } else {
-            throw new Error(`Log data not valid for w:c:${this.name} (Wiki.prototype.fetchRC)`);
+            throw new Error(`Log data not valid for w:c:${this.name} (Wiki.prototype.fetchLog)`);
         }
     }.bind(this));
 };
 
-Wiki.prototype.update = function() {
-    [this.fetchRC(), this.fetchLog()].forEach(function(el) {
-        el.then(function(data) {
-            if(data.length > 0) {
-                data.forEach(function(entry) {
-                    let result = this.formatMessage(this.handle(entry));
-                    if(typeof result === 'string') {
-                        this.transport.send(result);
-                    }
-                }, this);
+Wiki.prototype.fetchAbuseLog = function() {
+    // TODO: Log in so this thing actually works
+    let options = {
+        list: 'abuselog',
+        aflprop: 'filter|user|title|action|result|timestamp|ids',
+        afllimit: 500
+    };
+    if(typeof this.aflend === 'string') {
+        options.aflend = this.aflend;
+    }
+    return this.api('query', options, function(data) {
+        if(data.query && data.query.abuselog instanceof Array) {
+            var log = data.query.abuselog,
+                logdate = new Date(this.aflend);
+            if(typeof this.aflend === 'string') {
+                log = log.filter((el) => new Date(el.timestamp) > logdate);
             }
-        }.bind(this))
-        .catch((error) => { throw error; });
+            this.aflend = data.query.abuselog[0].timestamp;
+            return log;
+        } else {
+            throw new Error(`Abuse log data not valid for w:c:${this.name} (Wiki.prototype.fetchAbuseLog)`);
+        }
+    }.bind(this));
+};
+
+Wiki.prototype.dispatchFetcher = function(type) {
+    switch(type) {
+        case 'rc':
+        case 'recent changes':
+            return this.fetchRC;
+        case 'log':
+            return this.fetchLog;
+        case 'abuselog':
+        case 'al':
+        case 'abuse log':
+            return this.fetchAbuseLog;
+    }
+};
+
+Wiki.prototype.update = function() {
+    this.fetch.forEach(function(el) {
+        el.call(this)
+            .then(function(data) {
+                if(data.length > 0) {
+                    data.forEach(function(entry) {
+                        let result = this.formatMessage(this.handle(entry));
+                        if(typeof result === 'string') {
+                            this.transport.send(result);
+                        }
+                    }, this);
+                }
+            }.bind(this))
+            .catch((error) => { throw error; });
     }, this);
 };
 
 Wiki.prototype.handle = function (info) {
-    // TODO: Check
     switch(info.type) {
+        case undefined:
+            if(typeof info.filter_id === 'number') {
+                // This is an abuse log
+                return ['abuselog', info.user, info.filter_id, info.filter, info.action, info.title, strings[`action-${info.result}`]];
+            }
+            break;
         case 'new':
             // Not a log
             return (info.ns === 1201 || info.ns === 2001) ?
@@ -252,6 +298,7 @@ Wiki.prototype.handle = function (info) {
                 // Why Wikia, why
                 case 'wall_remove': return ['threadremove', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns), info.comment];
                 case 'wall_admindelete': return ['threaddelete', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns), info.comment];
+                case 'wall_restore': return ['threadrestore', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns), info.comment];
             }
             break;
         case 'block':
@@ -293,7 +340,7 @@ Wiki.prototype.handle = function (info) {
         case 'upload':
             switch(info.action) {
                 case 'upload': return ['upload', info.user, this.link(info.title), info.comment];
-                case 'overwrite': return ['reupload', info.user, this.link(info.title)];
+                case 'overwrite': return ['reupload', info.user, this.link(info.title), info.comment];
                 case 'revert': return ['debug', JSON.stringify(info)]; // TODO
             }
             break;

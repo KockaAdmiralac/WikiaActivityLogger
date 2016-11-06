@@ -29,6 +29,7 @@ IO.api = (wiki, action, data, transform) => {
             var err = data.error;
             throw new Error(`MediaWiki API error: ${err.code}: ${err.info}`);
         } else if (typeof data[action] === 'undefined') {
+            console.log('error2 yay');
             throw new Error('MediaWiki API returned no data!');
         } else if(typeof transform === 'undefined') {
             return data;
