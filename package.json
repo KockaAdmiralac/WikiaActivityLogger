@@ -1,0 +1,34 @@
+{
+    "name": "WikiaActivityLogger",
+    "version": "0.0.3",
+    "description": "Logs activity of a Wikia wiki through different transports",
+    "keywords": [
+        "wikia",
+        "activity",
+        "logger",
+        "discord"
+    ],
+    "homepage": "https://github.com/KockaAdmiralac/WikiaActivityLogger",
+    "license": "CC-BY-SA-4.0",
+    "author": {
+        "name": "KockaAdmiralac",
+        "email": "1405223@gmail.com",
+        "url": "https://github.com/KockaAdmiralac"
+    },
+    "main": "main.js",
+    "scripts": {
+        "start": "node main.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/KockaAdmiralac/WikiaActivityLogger.git"
+    },
+    "dependencies": {
+        "request-promise-native": ">=1.0.0",
+        "request": "^2.34"
+    },
+    "engines": {
+        "node": ">=0.12.0"
+    },
+    "private": true
+}
