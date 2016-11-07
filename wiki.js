@@ -6,6 +6,9 @@ let Wiki = function(name, config) {
     if(!(this instanceof Wiki)) {
 		throw new Error('This isn\'t a static class! (Wiki.constructor)');
 	}
+    this.name = name;
+    this.log('Initiating...');
+    this.config = config;
     if(typeof name !== 'string' || typeof config !== 'object') {
         throw new Error('`name` or `config` parameter invalid (Wiki.constructor)');
     }
@@ -18,13 +21,14 @@ let Wiki = function(name, config) {
     } else {
         throw new Error('Transport configuration invalid! (Wiki.constructor)');
     }
-    this.name = name;
-    this.config = config;
-    this.fetch = (this.config.fetch || ['rc', 'log']).map(this.dispatchFetcher.bind(this));
+    let fetchSources = this.config.fetch || ['rc', 'log'];
+    this.fetch = fetchSources.map(this.dispatchFetcher.bind(this));
     this.threadCache = {};
-    this.log('Fetching threads...');
-    this.afterFetch();
-    //this.fetchThreads();
+    if(this.config.threadfetch) {
+        this.fetchThreads();
+    } else {
+        this.afterFetch();
+    }
 };
 
 Wiki.prototype.log = function(message) {
@@ -36,6 +40,10 @@ Wiki.prototype.api = function(action, data, transform) {
 };
 
 Wiki.prototype.formatMessage = function(args) {
+    if(!(args instanceof Array)) {
+        // Some stuff happened so we shouldn't care
+        return;
+    }
     let msg = strings[args.splice(0, 1)[0]];
     if(typeof msg !== 'string') {
         throw new Error('Given message isn\'t a string (Wiki.prototype.formatMessage)');
@@ -140,25 +148,17 @@ Wiki.prototype.fetchThreadsDPL = function(index) {
 };
 
 Wiki.prototype.afterFetch = function() {
-    this.log('Fetched all, initiating...');
-    this.fetchRC()
-        .then((function(data) {
-            if(data.length === 0) {
-                throw new Error('Initial returned recent changes empty (Wiki.constructor)');
-            } else {
-                this.fetchLog()
-                    .then(function(data) {
-                        if(data.length === 0) {
-                            throw new Error('Initial returned log empty (Wiki.constructor)');
-                        } else {
-                            this.log('Initiated, interval set!');
-                            this.interval = setInterval(this.update.bind(this), (this.config.interval || 500));
-                        }
-                    }.bind(this))
-                    .catch((error) => { throw error; });
-            }
-        }).bind(this))
-        .catch((error) => { throw error; });
+    this._tempFetchedInitial = 0;
+    this.fetch.forEach(function(el) {
+        el.call(this)
+            .then((function() {
+                if(++this._tempFetchedInitial === this.fetch.length) {
+                    this.log('Initiated, interval set!');
+                    this.interval = setInterval(this.update.bind(this), (this.config.interval || 500));
+                }
+            }).bind(this))
+            .catch((error) => { throw error; });
+    }, this);
 };
 
 Wiki.prototype.fetchRC = function() {
@@ -296,6 +296,7 @@ Wiki.prototype.handle = function (info) {
             }
             switch(info.logaction) {
                 // Why Wikia, why
+                case 'wall_archive': return ['threadremove', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns), info.comment];
                 case 'wall_remove': return ['threadremove', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns), info.comment];
                 case 'wall_admindelete': return ['threaddelete', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns), info.comment];
                 case 'wall_restore': return ['threadrestore', info.user, this.threadLink(info.title), this.boardLink(info.title, info.ns), info.comment];
@@ -308,10 +309,10 @@ Wiki.prototype.handle = function (info) {
                 case 'unblock': return ['unblock', info.user];
             }
             break;
-        case 'newusers': return ['newusers', info.user];
+        case 'newusers': return ['newusers', this.link(`Special:Contribs/${info.user}`)];
         case 'useravatar':
             switch(info.action) {
-                case 'avatar_chn': return ['avatar', info.user];
+                case 'avatar_chn': return ['avatar', this.link(`Special:Contribs/${info.user}`)];
                 case 'avatar_rem': return ['remavatar', info.user, info.title];
             }
             break;
@@ -323,7 +324,9 @@ Wiki.prototype.handle = function (info) {
                 case 'restore': return ['restore', info.user, this.link(info.title), info.comment];
             }
             break;
-        case 'patrol': break; // Not going to handle this
+        case 'patrol':
+        case 'templateclassification':
+            break; // Not going to handle this, they are simply useless
         case 'move':
             // TODO: move_redir
             switch(info.action) {
@@ -332,11 +335,12 @@ Wiki.prototype.handle = function (info) {
             }
             break;
         case 'rights':
-            // TODO: autopromote, erevoke
-            if(info.action === 'autopromote' || info.action === 'erevoke') {
-                console.log(info);
+            // TODO: autopromote
+            switch(info.action) {
+                case 'rights': return ['rights', info.user, info.title, info.rights.old, info.rights.new, info.comment];
+                case 'autopromote': return ['debug', JSON.stringify(info)]; // TODO
             }
-            return ['rights', info.user, info.title, info.rights.old, info.rights.new, info.comment];
+            break;
         case 'upload':
             switch(info.action) {
                 case 'upload': return ['upload', info.user, this.link(info.title), info.comment];
@@ -364,10 +368,21 @@ Wiki.prototype.handle = function (info) {
         case 'wikifeatures': return ['wikifeatures', info.user, info.comment];
         case 'import':
             switch(info.action) {
-                case 'interwiki': return ['debug', JSON.stringify(info)];
-                case 'upload': return ['import', info.user, this.link(info.title), info.comment]; // TODO
+                case 'interwiki': return ['debug', JSON.stringify(info)]; // TODO
+                case 'upload': return ['import', info.user, info[1], this.link(`Special:AbuseFilter/history/${info[1]}/diff/prev/${info[0]}`)]; // TODO
             }
             break;
+        case 'renameuser': return ['renameuser', info.user, info.comment];
+        // Cases to handle:
+        // suppress - Suppresses something? Idk
+        // editaccnt - This is used when accounts get disabled iirc
+        // phalanx - BOOM
+        // phalanxemail - b@o.om
+        // chatconnect - Checkuser for chat
+        // piggyback - 🐷
+        // TODO make sactage run this program through his server so we see all the phalanxes c:
+        // Jk
+        default: return ['debug', JSON.stringify(info)];
     }
 };
 
