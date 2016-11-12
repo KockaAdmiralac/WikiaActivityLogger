@@ -35,7 +35,7 @@
     "chatbanchange": "{{user|$1}} cambió el baneo del chat de {{userlink|$2}} a $3 {{summary|$4}}",
     "chatbanremove": "{{user|$1}} ha terminado el baneo del chat de {{userlink|$2}} {{summary|$3}}",
     "debug": "Depuración: {{debug|$1}}",
-    "renameuser": "{{user|$1}} commited a rename: $2",
+    "renameuser": "{{user|$1}} realizó un renombre: $2",
     "abuselog": "{{user|$1}} provocó el filtro de abusos ID $2 ({{link|Special:AbuseFilter/$2|$3}}) intentando $4 $5. $6.",
     "action-disallow": "Acción prevenida",
     "action-tag": "Acción etiquetada",
