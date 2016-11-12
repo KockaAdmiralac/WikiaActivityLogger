@@ -1,4 +1,4 @@
 @echo off
-npm install
+cd ..
 npm start
 pause

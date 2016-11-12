@@ -1,6 +1,6 @@
 {
     "name": "WikiaActivityLogger",
-    "version": "0.0.3",
+    "version": "0.1.0",
     "description": "Logs activity of a Wikia wiki through different transports",
     "keywords": [
         "wikia",

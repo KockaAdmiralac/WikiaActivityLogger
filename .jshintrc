@@ -1,9 +1,7 @@
 {
   "globals"     : {
-      "process"  : false,
-      "Torus"    : false,
-      "require"  : false,
-      "__dirname": false
+      "module"    : false,
+      "require"   : false
   },
   "browser"     : true,
   "devel"       : true,

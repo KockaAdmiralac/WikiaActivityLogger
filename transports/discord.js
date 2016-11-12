@@ -1,29 +1,123 @@
+/**
+ * discord.js
+ * Module for transferring messages through [Discord](https://discordapp.com)
+ */
 'use strict';
-const io = require('../io.js');
 
-var Discord = function(config, wikiname) {
-    if(!(this instanceof Discord)) {
-		throw new Error('This isn\'t a static class! (Discord.constructor)');
-	}
-    if(config.type !== 'webhook') {
-        throw new Error('Discord transport does not currently support any method other than webhook (Discord.constructor)');
+/**
+ * Importing modules
+ */
+const io = require('../includes/io.js'),
+      util = require('../includes/util.js'),
+      Transport = require('../transports/transport.js');
+
+/**
+ * Transport class
+ * @class Discord
+ */
+class Discord extends Transport {
+    /**
+     * Class constructor
+     * @constructor
+     */
+    constructor(config, wikiname, strings) {
+        super(config, wikiname, 'Discord', strings);
+        if(config.type !== 'webhook') {
+            util.logError('Discord transport does not currently support any method other than webhook', 'Discord', 'constructor');
+        }
+        if(typeof config.id === 'string' && typeof config.token === 'string') {
+            this.url = `https://discordapp.com/api/webhooks/${config.id}/${config.token}`;
+        }
     }
-    if(typeof config.id === 'string' && typeof config.token === 'string') {
-        this.url = `https://discordapp.com/api/webhooks/${config.id}/${config.token}`;
+    /**
+     * Bot calls this method when it wants to send a message
+     * through a transport.
+     * @method send
+     * @param {String} message Message to send
+     */
+    send(message) {
+        io.post(this.url, {
+            content: this.parse(message)
+        }, undefined, true);
     }
-    this.wikiname = wikiname;
-};
+    /**
+     * Replaces a P in http:// or https:// with a Cyrillic R
+     * This is so Discord doesn't generate previews but the
+     * link displays rather normally
+     * @method _dirtyEscapeLink
+     * @private
+     * @param {String} link Link to escape
+     * @return {String} Escaped link
+     * @todo boi, this is DIRTY
+     */
+    _dirtyEscapeLink(link) {
+        return link
+            .replace(/http:\/\//g, 'httр://')
+            .replace(/https:\/\//g, 'httрs://');
+    }
+    /**
+     * Escapes markdown syntax
+     * @method _escapeMarkdown
+     * @private
+     * @param {String} message Message to escape
+     * @return {String} Escaped message
+     * @todo Not finished yet
+     */
+    _escapeMarkdown(message) {
+        return message
+            .replace(/\*/g, '\\*');
+            // TODO
+    }
+    /**
+     * Shorthand for util.linkToArticle
+     * @method _link
+     * @private
+     * @param {String} page Page to link to
+     * @return {String} Link to the page
+     */
+    _link(page) {
+        return util.linkToArticle(this.wikiname, page);
+    }
+    /**
+     * Creates a markdown link ([text](link))
+     * @method _mdLink
+     * @private
+     * @param {String} link Link to point to
+     * @param {String} text Text to mask the link with
+     * @return {String} Markdown-formatted masked link
+     */
+    _mdLink(link, text) {
+        return `[${text}](<${link.replace(/\)/g, '%29')}>)`;
+    }
+    /**
+     * Parses a {{template}}
+     * @method template
+     * @protected
+     * @param {String} name Template name
+     * @param {Array<String>} args Template arguments
+     * @return {String} Parsed template
+     */
+    template(name, args) {
+        switch(name) {
+            case 'diff': return `(${this._mdLink(util.linkToDiff(this.wikiname, args[0]), this.strings.diff)})`;
+            case 'diffSize':
+                let bold = '*'.repeat((args[0] > 1000 || args[0] < -1000) ? 2 : 1);
+                if(args[0] > 0) {
+                    args[0] = `+${args[0]}`;
+                }
+                return `${bold}(${args[0]})${bold}`;
+            case 'user':
+                return `${this._mdLink(this._link(`User:${args[0]}`), args[0])} (${this._mdLink(this._link(`User talk:${args[0]}`), this.strings.talk)}|${this._mdLink(this._link(`Special:Contributions/${args[0]}`), this.strings.contribs)})`;
+            case 'link':
+                return this._mdLink(this._link(args[0]), (args[1] || args[0]));
+            case 'userlink':
+                return this._mdLink(this._link(args[0]), args[0].split(':')[1]);
+            case 'summary':
+                return (args[0].length === 0) ? '' : `(*${this._dirtyEscapeLink(this._escapeMarkdown(args[0]))}*)`;
+            case 'debug':
+                return `\`\`\`${args[0]}\`\`\``;
+        }
+    }
+}
 
-Discord.prototype.escapeMessage = function(message) {
-    // Escape URLs
-    message = message.replace(/(http:\/\/[^ ]+)/g, '<$1>');
-    return message;
-};
-
-Discord.prototype.send = function(message) {
-    io.post(this.url, {
-        content: this.escapeMessage(message)
-    });
-};
-
-module.exports = Discord; // jshint ignore: line
+module.exports = Discord;
