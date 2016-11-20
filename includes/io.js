@@ -9,6 +9,10 @@
  */
 const http = require('request-promise-native');
 
+/**
+ * Static class for handling HTTP requests
+ * @class IO
+ */
 class IO {
     /**
      * Class constructor
@@ -38,7 +42,18 @@ class IO {
      * @return {Promise} Promise on which to listen for response
      */
     static _request(method, url, data, transform, body) {
-        let options = {
+        let lol = [
+                'socket.io sucks',
+                'Brandon is a witch',
+                'This user agent string is random',
+                '69% of people don\'t understand things correctly',
+                '"Kocka" means "cube" in Serbian',
+                ''
+            ],
+            options = {
+            headers: {
+                'User-Agent': `${process.env.npm_package_name} v${process.env.npm_package_version} (${process.env.npm_package_homepage}) [Did you know? ${lol[Math.floor(Math.random() * lol.length)]}]`
+            },
             method: method,
             uri: url,
             json: true,

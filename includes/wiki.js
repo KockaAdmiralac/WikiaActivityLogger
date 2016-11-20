@@ -17,10 +17,10 @@ class Wiki {
      */
     constructor(name, config, lang, jar) {
         if(typeof name !== 'string' || typeof config !== 'object') {
-            throw new Error('`name` or `config` parameter invalid (Wiki.constructor)');
+            this._error('`name` or `config` parameter invalid');
         }
         this.name = name;
-        this._log('Initiating...');
+        this._hook('initStart');
         this.config = config;
         this.language = this.config.language || lang;
         io.jar = jar;
@@ -40,7 +40,7 @@ class Wiki {
         try {
             this.strings = require(`../i18n/${this.language}.json`);
         } catch(e) {
-            this._log(`Language '${this.language}' not found! Resorting to 'en'...`);
+            this._error(`Language '${this.language}' not found! Resorting to 'en'...`);
             this.strings = require(`../i18n/en.json`);
         }
     }
@@ -55,17 +55,29 @@ class Wiki {
             let Transport = require(`../transports/${t.platform}.js`);
             this.transport = new Transport(t, this.name, this.strings);
         } else {
-            util.logError('Transport configuration invalid!', 'Wiki', 'constructor');
+            this._error('Transport configuration invalid!');
         }
     }
     /**
-     * Logs something to console with a wiki-specific tag
-     * @method _log
+     * Calls a controller hook
+     * @method _hook
+     * @private
+     */
+    _hook() {
+        main.hook.apply(main, Array.prototype.concat('wiki', this, Array.prototype.slice.call(arguments)));
+    }
+    /**
+     * Sends an error command to controller
+     * @method _error
      * @private
      * @param {String} message Message to log
      */
-    _log(message) {
-        console.log(`[${this.name}] ${message}`);
+    _error(error) {
+        if(typeof error === 'string') {
+            this._hook('error', error);
+        } else if(error instanceof Error) {
+            this._hook('error', error.stack);
+        }
     }
     /**
      * Shorthand for io.api
@@ -93,7 +105,7 @@ class Wiki {
         }
         let msg = this.strings[args.splice(0, 1)[0]];
         if(typeof msg !== 'string') {
-            util.logError('Given message isn\'t a string', 'Wiki', 'prototype.formatMessage');
+            this._error('Given message isn\'t a string');
         }
         return util.format(msg, args);
     }
@@ -166,7 +178,7 @@ class Wiki {
                 // If already went through forum threads go to wall threads
                 this._fetchThreadsAPI(undefined, true);
             }
-        }).bind(this)).catch((error) => { throw error; });
+        }).bind(this)).catch(error => this._error(error));
     }
     /**
      * Generates a DPL to list threads
@@ -213,7 +225,7 @@ class Wiki {
                     }
                 }
             }.bind(this))
-            .catch((error) => { throw error; });
+            .catch(error => this._error(error));
     }
     /**
      * Initializes the interval
@@ -227,11 +239,11 @@ class Wiki {
             el.call(this)
                 .then((function() {
                     if(++this._tempFetchedInitial === this.fetch.length) {
-                        this._log('Initiated, interval set!');
+                        this._hook('initInterval');
                         this.interval = setInterval(this._update.bind(this), (this.config.interval || 500));
                     }
                 }).bind(this))
-                .catch(function(error) { throw error; });
+                .catch(error => this._error(error));
         }, this);
     }
     /**
@@ -263,7 +275,7 @@ class Wiki {
                 this.rcend = data.query.recentchanges[0].timestamp;
                 return rc;
             } else {
-                throw new Error(`Recent changes data not valid for w:c:${this.name} (Wiki.prototype._fetchRC)`);
+                this._error('Recent changes data not valid');
             }
         }).bind(this));
     }
@@ -295,7 +307,7 @@ class Wiki {
                 this.leend = data.query.logevents[0].timestamp;
                 return log;
             } else {
-                throw new Error(`Log data not valid for w:c:${this.name} (Wiki.prototype.fetchLog)`);
+                this._error('Log data not valid');
             }
         }).bind(this));
     }
@@ -324,7 +336,7 @@ class Wiki {
                 this.aflend = data.query.abuselog[0].timestamp;
                 return log;
             } else {
-                throw new Error(`Abuse log data not valid for w:c:${this.name} (Wiki.prototype.fetchAbuseLog)`);
+                this._error('Abuse log data not valid');
             }
         }).bind(this));
     }
@@ -366,7 +378,7 @@ class Wiki {
                         }, this);
                     }
                 }.bind(this))
-                .catch((error) => { throw error; });
+                .catch(error => this._error(error));
         }, this);
     }
     /**
@@ -400,7 +412,7 @@ class Wiki {
                 }
                 switch(info.logaction) {
                     // Why Wikia, why
-                    case 'wall_archive': return ['threadremove', info.user, this._thread(info.title), this._board(info.title, info.ns), info.comment];
+                    case 'wall_archive': return ['threadclose', info.user, this._thread(info.title), this._board(info.title, info.ns), info.comment];
                     case 'wall_remove': return ['threadremove', info.user, this._thread(info.title), this._board(info.title, info.ns), info.comment];
                     case 'wall_admindelete': return ['threaddelete', info.user, this._thread(info.title), this._board(info.title, info.ns), info.comment];
                     case 'wall_restore': return ['threadrestore', info.user, this._thread(info.title), this._board(info.title, info.ns), info.comment];
@@ -410,7 +422,7 @@ class Wiki {
                 switch(info.action) {
                     case 'block':
                     case 'reblock': return [info.action, info.user, info.title, info.block.duration, info.block.flags, info.comment];
-                    case 'unblock': return ['unblock', info.user];
+                    case 'unblock': return ['unblock', info.user, info.title, info.comment];
                 }
                 break;
             case 'newusers': return ['newusers', info.user];

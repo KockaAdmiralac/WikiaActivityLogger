@@ -1,15 +1,14 @@
 /**
  * main.js
- * Entry point for the program
+ * Module containing the main program class
  */
 'use strict';
 
 /**
- * Importing the Wiki object
+ * Importing modules
  */
 const Wiki = require('./includes/wiki.js'),
-      io = require('./includes/io.js'),
-      util = require('./includes/util.js');
+      io = require('./includes/io.js');
 
 /**
  * Main class
@@ -17,161 +16,168 @@ const Wiki = require('./includes/wiki.js'),
  */
 class Logger {
     /**
-     * Class constructor
-     * @constructor
-     * @throws {Error} When called
+     * Initializer
+     * @method initialize
      */
-    constructor() {
-        throw new Error('This is a static class! (Logger.constructor)');
-    }
-    /**
-     * Entry point of the program
-     * @method init
-     * @static
-     */
-    static init() {
-        Logger._initConfig();
+    initialize() {
+        this._initConfig();
         io.makeJar();
-        Logger._read = require('readline').createInterface({
-        	input: process.stdin,
-        	output: process.stdout
-        });
-    	if(Logger._config.account && Logger._config.account.username) {
-    		Logger._initAccount();
+    	if(this._config.account && this._config.account.username) {
+    		this._initAccount();
     	} else {
-    		Logger._initWikis();
+    		this._initWikis();
     	}
     }
     /**
      * Initializes the program configuration
      * @method _initConfig
-     * @static
      * @private
      */
-    static _initConfig() {
+    _initConfig() {
         try {
-    		Logger._config = require(`./config.json`);
+    		this._config = require(`./config.json`);
     	} catch(e) {
-    		console.warn('An error occurred while loading the configuration! Please make sure config.json file in the main directory exists.');
-    		return;
+    		main.hook('error', 'An error occurred while loading the configuration! Please make sure config.json file in the main directory exists.', 'Logger', '_initConfig');
     	}
     }
     /**
      * Initializes information about wikis
      * @method _initWikis
-     * @static
      * @private
      */
-    static _initWikis() {
-        Logger._wikis = [];
-        let wikis = Logger._config.wikis;
+    _initWikis() {
+        this._wikis = [];
+        let wikis = this._config.wikis;
     	if(typeof wikis !== 'object') {
     		console.warn('No wikis configured! Exiting program...');
     		return;
     	}
     	for(let i in wikis) {
     		if(wikis.hasOwnProperty(i)) {
-    			Logger._wikis.push(new Wiki(i, wikis[i], (Logger._config.language || 'en'), Logger._cookieJar));
+    			this._wikis.push(new Wiki(i, wikis[i], (this._config.language || 'en'), this._cookieJar));
     		}
     	}
     }
     /**
+     * Adds a wiki to array of wikis
+     * @method addWiki
+     * @param {Wiki} wiki Wiki object to add
+     */
+    addWiki(wiki) {
+        this._wikis.push(wiki);
+    }
+    /**
+     * Removes a wiki from the array of wikis
+     * @method removeWiki
+     * @param {Wiki} wiki The wiki to remove
+     */
+    removeWiki(wiki) {
+        this._wikis.splice(this._wikis.indexOf(wiki), 1);
+    }
+    /**
      * Initializes the account used to access the API
      * @method _initAccount
-     * @static
      * @private
      */
-    static _initAccount() {
-        let acc = Logger._config.account;
+    _initAccount() {
+        let acc = this._config.account;
     	if(acc.password) {
-    		Logger._login(acc);
+    		this._login(acc);
     	} else {
-    		Logger._read.question(`Please supply a password for ${acc.username}: `, function(password) {
-    			if(password) {
-    				Logger._login({
-    					username: acc.username,
-    					password: password,
-    					domain: acc.domain
-    				});
-    			} else {
-    				console.warn('Please supply a password!');
-    			}
+            main.hook('enterPassword', acc.username, function(password) {
+    			this._login({
+    				username: acc.username,
+    				password: password,
+    				domain: acc.domain
+    			});
     		});
     	}
     }
     /**
      * Logs in through the API
      * @method _login
-     * @static
      * @private
      */
-    static _login(info) {
+    _login(info) {
     	let options = {
     		lgname: info.username,
     		lgpassword: info.password
-    	}, body;
+    	};
     	if(info.token) {
     		options.lgtoken = info.token;
     	}
     	info.domain = info.domain || 'community';
-    	io.api(info.domain, 'login', options, undefined, 'POST', body).then((data) => {
+    	io.api(info.domain, 'login', options, undefined, 'POST').then((function(data) {
     		switch(data.login.result) {
     			case 'NeedToken':
     				info.token = data.login.token;
-    				Logger._login(info);
+    				this._login(info);
     				break;
     			case 'WrongToken':
-                    util.logError('The supplied token was not a valid token!', 'Logger', '_login');
+                    main.hook('error', 'The supplied token was not a valid token!', 'Logger', '_login');
                     break;
     			case 'Illegal':
-                    util.logError('Supplied user name is invalid!', 'Logger', '_login');
+                    main.hook('error', 'Supplied user name is invalid!', 'Logger', '_login');
                     break;
     			case 'NotExists':
-                    util.logError('Supplied user name does not exist!', 'Logger', '_login');
+                    main.hook('error', 'Supplied user name does not exist!', 'Logger', '_login');
                     break;
     			case 'EmptyPass':
-                    util.logError('Supplied password is empty!', 'Logger', '_login');
+                    main.hook('error', 'Supplied password is empty!', 'Logger', '_login');
                     break;
     			case 'WrongPass':
     			case 'WrongPluginPass':
-    				util.logError('Supplied password is incorrect!', 'Logger', '_login');
+    				main.hook('error', 'Supplied password is incorrect!', 'Logger', '_login');
                     break;
     			case 'CreateBlocked':
-                    util.logError('Auto-creation of the account is required but not possible!', 'Logger', '_login');
+                    main.hook('error', 'Auto-creation of the account is required but not possible!', 'Logger', '_login');
                     break;
     			case 'Throttled':
-                    util.logError('Login attempts from your IP have been throttled!', 'Logger', '_login');
+                    main.hook('error', 'Login attempts from your IP have been throttled!', 'Logger', '_login');
                     break;
     			case 'Blocked':
-                    util.logError(`The user account you attempted to log into is blocked on ${info.domain}.wikia.com! You can change the login domain with the 'domain' parameter.`, 'Logger', '_login');
+                    main.hook('error', `The user account you attempted to log into is blocked on ${info.domain}.wikia.com! You can change the login domain with the 'domain' parameter.`, 'Logger', '_login');
                     break;
     			case 'Aborted':
-                    util.logError(`Logging in was aborted by an extension hook! Reason: ${data.login.reason ? data.login.reason : 'unknown'}`);
+                    main.hook('error', `Logging in was aborted by an extension hook! Reason: ${data.login.reason ? data.login.reason : 'unknown'}`);
                     break;
                 case 'Success':
-    				console.info('Login successful!');
-                    Logger._cookieJar = io.jar;
-    				Logger._initWikis();
+    				main.hook('login');
+                    this._account = info.username;
+                    this._cookieJar = io.jar;
+    				this._initWikis();
     		}
-    	}).catch((error) => { console.log(error.stack); });
+    	}).bind(this)).catch((error) => { console.log(error.stack); });
     }
     /**
-     * Getter for all avaialable wikis
-     * @static
+     * Destroys all wikis
+     * @method destroy
+     * @todo Make this description and method name less scary
+     */
+    destroy() {
+        this._wikis.forEach(el => el.destroy());
+    }
+    /**
+     * Get all avaialable wikis
      * @return {Array<Wiki>} All available wikis
      */
-    static get wikis() {
-        return Logger._wikis;
+    get wikis() {
+        return this._wikis;
     }
     /**
-     * Getter for project configuration
-     * @static
+     * Get project configuration
      * @return {Object} Project configuration
      */
-    static get config() {
-        return Logger._config;
+    get config() {
+        return this._config;
+    }
+    /**
+     * Get logged in account name
+     * @return {String} Account name
+     */
+    get account() {
+        return this._account;
     }
 }
 
-// Ready... set... GO!!!
-Logger.init();
+module.exports = Logger;

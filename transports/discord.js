@@ -14,6 +14,7 @@ const io = require('../includes/io.js'),
 /**
  * Transport class
  * @class Discord
+ * @augments Transport
  */
 class Discord extends Transport {
     /**
@@ -113,7 +114,8 @@ class Discord extends Transport {
             case 'userlink':
                 return this._mdLink(this._link(args[0]), args[0].split(':')[1]);
             case 'summary':
-                return (args[0].length === 0) ? '' : `(*${this._dirtyEscapeLink(this._escapeMarkdown(args[0]))}*)`;
+                let a = args[0].trim().replace(/\\n/g, '');
+                return (a.length === 0) ? '' : `(*${this._dirtyEscapeLink(this._escapeMarkdown(a))}*)`;
             case 'debug':
                 return `\`\`\`${args[0]}\`\`\``;
         }

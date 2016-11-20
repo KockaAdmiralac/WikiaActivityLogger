@@ -15,7 +15,7 @@ class Util {
      * @throws {Error} When called
      */
     constructor() {
-        throw new Error('This is a static class! (Util.constructor)');
+        main.hook('error', 'This is a static class!', 'Util', 'constructor');
     }
     /**
      * Returns a link to a wiki
@@ -66,17 +66,6 @@ class Util {
             .replace(/%20/g, '_');
     }
     /**
-     * Logs an error to console
-     * @method logError
-     * @static
-     * @param {String} error The error to throw
-     * @param {String} modul Module where error is thrown
-     * @param {String} method Method from where the error is thrown
-     */
-    static logError(error, modul, method) {
-        console.error(`${error} (${modul}.${method})`);
-    }
-    /**
      * Formats a message using the given format
      * @method format
      * @static
@@ -88,10 +77,9 @@ class Util {
     static format(msg, args) {
         if(args instanceof Array) {
             args.forEach((el, i) => {
-                if(typeof el !== 'string' && typeof el !== 'number') {
-                    Util.logError(`Parameter $${i + 1} cannot be converted to a string`, 'Util', 'format');
+                if(typeof el === 'string' || typeof el === 'number') {
+                    msg = msg.replace(new RegExp(`\\$${i + 1}`, 'g'), el);
                 }
-                msg = msg.replace(new RegExp(`\\$${i + 1}`, 'g'), el);
             }, this);
         }
         return msg;
