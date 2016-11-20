@@ -15,6 +15,12 @@
         "email": "1405223@gmail.com",
         "url": "https://github.com/KockaAdmiralac"
     },
+    "contributors": [
+        {
+            "name": "Unai Mengual",
+            "url": "https://unai01.github.io"
+        }
+    ],
     "main": "index.js",
     "scripts": {
         "start": "node index.js"
