@@ -1,6 +1,6 @@
 {
     "name": "WikiaActivityLogger",
-    "version": "0.1.3",
+    "version": "1.0.0",
     "description": "Logs activity of a Wikia wiki through different transports",
     "keywords": [
         "wikia",
@@ -8,7 +8,7 @@
         "logger",
         "discord"
     ],
-    "homepage": "https://github.com/KockaAdmiralac/WikiaActivityLogger",
+    "homepage": "http://kocka.wikia.com/wiki/WikiaActivityLogger",
     "license": "CC-BY-SA-4.0",
     "author": {
         "name": "KockaAdmiralac",

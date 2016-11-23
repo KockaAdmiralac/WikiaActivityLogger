@@ -49,8 +49,7 @@ class Logger {
         this._wikis = [];
         let wikis = this._config.wikis;
     	if(typeof wikis !== 'object') {
-    		console.warn('No wikis configured! Exiting program...');
-    		return;
+    		main.hook('noWikis');
     	}
     	for(let i in wikis) {
     		if(wikis.hasOwnProperty(i)) {
@@ -147,12 +146,13 @@ class Logger {
                     this._cookieJar = io.jar;
     				this._initWikis();
     		}
-    	}).bind(this)).catch((error) => { console.log(error.stack); });
+    	}).bind(this)).catch(error => main.hook('throw', error));
     }
     /**
      * Destroys all wikis
+     * Not really
      * @method destroy
-     * @todo Make this description and method name less scary
+     * @todo Make this method name less scary
      */
     destroy() {
         this._wikis.forEach(el => el.destroy());

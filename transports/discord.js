@@ -22,6 +22,7 @@ class Discord extends Transport {
      * @constructor
      */
     constructor(config, wikiname, strings) {
+        config.type = config.type || 'webhook';
         super(config, wikiname, 'Discord', strings);
         if(config.type !== 'webhook') {
             util.logError('Discord transport does not currently support any method other than webhook', 'Discord', 'constructor');

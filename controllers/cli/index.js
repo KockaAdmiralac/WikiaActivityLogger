@@ -26,6 +26,13 @@ class CLI extends Controller {
         	output: process.stdout
         });
         this.running = true;
+        let env = process.env;
+        console.info(`
+            =====
+            Welcome to ${env.npm_package_name} v${env.npm_package_version}!
+            Documentation can be found at ${env.npm_package_homepage}
+            =====
+        `.replace(/( |\t)( |\t)+/g, ''));
     }
     /**
      * Reads a line from the console
@@ -91,9 +98,8 @@ class CLI extends Controller {
                     this._log.initialize();
                     break;
                 case 'info':
-                    var env = process.env;
-                    console.info(
-                        `
+                    let env = process.env;
+                    console.info(`
                         == Package info
                         ${env.npm_package_name} v${env.npm_package_version}
                         Description: ${env.npm_package_description}
@@ -103,8 +109,7 @@ class CLI extends Controller {
                         == Running info
                         Currently watched wikis: ${this._log.wikis.map(wiki => wiki.name).join(', ')}
                         Account: ${this._log.account || 'Not logged in'}
-                        `.replace(/( |\t)( |\t)+/g, '')
-                    );
+                    `.replace(/( |\t)( |\t)+/g, ''));
                     break;
                 default: this._eventError('No such command found!', 'CLI', '_processCommand');
             }
@@ -182,6 +187,15 @@ class CLI extends Controller {
                 break;
             default: this._eventError('No such wiki event!', 'CLI', '_eventWiki');
         }
+    }
+    /**
+     * Event thrown when no wikis are configured
+     * @method _eventNoWikis
+     * @private
+     */
+    _eventNoWikis() {
+        console.warn('No wikis configured! Exiting program...');
+        process.exit();
     }
 }
 

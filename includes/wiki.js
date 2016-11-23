@@ -478,7 +478,7 @@ class Wiki {
                 }
                 break;
             case 'merge': return ['merge', info.title, info[0], this.comment];
-            case 'abusefilter': return ['abusefilter', info.user, info[1], `Special:AbuseFilter/history/${info[1]}/diff/prev/${info[0]}`];
+            case 'abusefilter': return ['abusefilter', info.user, info[1], info[0]];
             case 'wikifeatures': return ['wikifeatures', info.user, info.comment];
             case 'import':
                 switch(info.action) {

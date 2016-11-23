@@ -28,7 +28,7 @@
     "merge": "{{user|$1}} merged histories of $2 and {{link|$3}} {{summary|$4}}",
     "avatar": "{{user|$1}} changed avatar",
     "remavatar": "{{user|$1}} removed avatar of $2",
-    "abusefilter": "{{user|$1}} modified abuse filter ID $2 [{{link|$3}}]",
+    "abusefilter": "{{user|$1}} modified abuse filter ID $2 [{{link|Special:AbuseFilter/history/$2/diff/prev/$3|diff}}]",
     "newusers": "{{user|$1}} created an account",
     "wikifeatures": "{{user|$1}} changed wiki feature: $2",
     "chatbanadd": "{{user|$1}} banned {{userlink|$2}} from chat for $3 {{summary|$4}}",
