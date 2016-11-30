@@ -47,7 +47,9 @@ class IO {
                 'Brandon is a witch',
                 'This user agent string is random',
                 '69% of people don\'t understand things correctly',
-                '"Kocka" means "cube" in Serbian'
+                '"Kocka" means "cube" in Serbian',
+                'A cube has 6 sides',
+                'Cubes aren\'t Illuminati'
             ],
             options = {
             headers: {
