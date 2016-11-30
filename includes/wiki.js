@@ -3,8 +3,8 @@
 /**
  * Importing modules
  */
-const io = require('../includes/io.js'),
-      util = require('../includes/util.js');
+const io = require('./io.js'),
+      util = require('./util.js');
 
 /**
  * Constants
