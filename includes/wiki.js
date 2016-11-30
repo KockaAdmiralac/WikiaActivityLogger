@@ -339,7 +339,7 @@ class Wiki {
         }).bind(this));
     }
     /**
-     * Returnes the fetcher method based on the configuration option
+     * Returns the fetcher method based on the configuration option
      * @method _dispatchFetcher
      * @private
      * @param {String} type Configuration option
