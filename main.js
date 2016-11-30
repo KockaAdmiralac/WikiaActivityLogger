@@ -8,7 +8,8 @@
  * Importing modules
  */
 const Wiki = require('./includes/wiki.js'),
-      io = require('./includes/io.js');
+      io = require('./includes/io.js'),
+      fs = require('fs');
 
 /**
  * Main class
@@ -21,6 +22,7 @@ class Logger {
      */
     initialize() {
         this._initConfig();
+        this._initCache();
         io.makeJar();
     	if(this._config.account && this._config.account.username) {
     		this._initAccount();
@@ -41,6 +43,38 @@ class Logger {
     	}
     }
     /**
+     * Initializes the program cache
+     * @method _initCache
+     * @private
+     */
+    _initCache() {
+        try {
+            this._cache = JSON.parse(require('./cache.json'));
+        } catch(e) {
+            this._cache = { wikis: {} };
+        }
+        this._cacheInterval = setInterval(this._saveCache.bind(this), 5000); // TODO: Make interval configurable?
+    }
+    /**
+     * Saves cache to cache.json
+     * @method _saveCache
+     * @private
+     */
+    _saveCache() {
+        try {
+            if(!(this._wikis instanceof Array)) {
+                return;
+            }
+            let wikiCache = this._wikis.map(wiki => wiki.cache);
+            if(this._cache && wikiCache) {
+                this._cache.wikis = wikiCache;
+                fs.writeFileSync('./cache.json', JSON.stringify(this._cache));
+            }
+        } catch(e) {
+            main.hook('throw', e);
+        }
+    }
+    /**
      * Initializes information about wikis
      * @method _initWikis
      * @private
@@ -53,7 +87,7 @@ class Logger {
     	}
     	for(let i in wikis) {
     		if(wikis.hasOwnProperty(i)) {
-    			this._wikis.push(new Wiki(i, wikis[i], (this._config.language || 'en'), this._cookieJar));
+    			this._wikis.push(new Wiki(i, wikis[i], (this._config.language || 'en'), this._cookieJar, this._cache.wikis[i]));
     		}
     	}
     }
@@ -156,6 +190,8 @@ class Logger {
      */
     destroy() {
         this._wikis.forEach(el => el.destroy());
+        clearInterval(this._cacheInterval);
+        this._saveCache();
     }
     /**
      * Get all avaialable wikis

@@ -7,9 +7,9 @@
 /**
  * Importing modules
  */
-const io = require('../includes/io.js'),
-      util = require('../includes/util.js'),
-      Transport = require('../transports/transport.js');
+const io = require('../../includes/io.js'),
+      util = require('../../includes/util.js'),
+      Transport = require('../transport.js');
 
 /**
  * Transport class
@@ -30,6 +30,7 @@ class Discord extends Transport {
         if(typeof config.id === 'string' && typeof config.token === 'string') {
             this.url = `https://discordapp.com/api/webhooks/${config.id}/${config.token}`;
         }
+        this.queue = [];
     }
     /**
      * Bot calls this method when it wants to send a message
@@ -38,9 +39,41 @@ class Discord extends Transport {
      * @param {String} message Message to send
      */
     send(message) {
-        io.post(this.url, {
-            content: this.parse(message)
-        }, undefined, true);
+        if(this.rateLimit) {
+            this.queue.push(message);
+        } else {
+            io.post(this.url, {
+                content: this.parse(message)
+            }, undefined, true)
+                .catch((function(error) {
+                    switch(error.statusCode) {
+                        case 429:
+                            this.rateLimit = true;
+                            this.queue.push(message);
+                            setTimeout((function() {
+                                this.rateLimit = false;
+                                this.queue.forEach(this.send, this);
+                                this.queue = [];
+                            }).bind(this), error.error.retry_after);
+                            break;
+                        default:
+                            main.hook('throw', error);
+                    }
+                }).bind(this));
+        }
+    }
+    /**
+     * Preprocesses the argument passed to the template
+     * @method preprocess
+     * @param {String} arg
+     * @return {String} Preprocessed argument
+     * @throws {Error} If not implemented through subclasses
+     */
+    preprocess(arg) {
+        return String(arg)
+            .replace(/\{/g, '\\{')
+            .replace(/\}/g, '\\}')
+            .replace(/\|/g, 'I'); // ehhh
     }
     /**
      * Replaces a P in http:// or https:// with a Cyrillic R
@@ -119,6 +152,8 @@ class Discord extends Transport {
                 return (a.length === 0) ? '' : `(*${this._dirtyEscapeLink(this._escapeMarkdown(a))}*)`;
             case 'debug':
                 return `\`\`\`${args[0]}\`\`\``;
+            case 'wiki':
+                return `<http://${args[0]}>`;
         }
     }
 }

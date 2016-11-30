@@ -1,6 +1,16 @@
 'use strict';
-const io = require('../includes/io.js'),
-      util = require('../includes/util.js');
+
+/**
+ * Importing modules
+ */
+const io = require('./io.js'),
+      util = require('./util.js');
+
+/**
+ * Constants
+ */
+const MIN_WKFROM = 1490000,
+      MAX_WKTO = 999999999999999;
 
 /**
  * Wiki object
@@ -15,20 +25,25 @@ class Wiki {
      * @param {String} lang Language used while logging
      * @param {Object} jar Cookie jar
      */
-    constructor(name, config, lang, jar) {
+    constructor(name, config, lang, jar, cache) {
         if(typeof name !== 'string' || typeof config !== 'object') {
             this._error('`name` or `config` parameter invalid');
         }
         this.name = name;
         this._hook('initStart');
         this.config = config;
+        this._cache = cache || {
+            threads: {}
+        };
         this.language = this.config.language || lang;
         io.jar = jar;
         this._initStrings();
         this._initTransport();
+        if(this.config.newwikis) {
+            this._initNewwikis();
+        }
         let fetchSources = this.config.fetch || ['rc', 'log'];
         this.fetch = fetchSources.map(this._dispatchFetcher.bind(this));
-        this.threadCache = {};
         this._initInterval();
     }
     /**
@@ -52,7 +67,7 @@ class Wiki {
     _initTransport() {
         let t = this.config.transport;
         if(typeof t === 'object' && typeof t.platform === 'string') {
-            let Transport = require(`../transports/${t.platform}.js`);
+            let Transport = require(`../transports/${t.platform}/index.js`);
             this.transport = new Transport(t, this.name, this.strings);
         } else {
             this._error('Transport configuration invalid!');
@@ -107,7 +122,7 @@ class Wiki {
         if(typeof msg !== 'string') {
             this._error('Given message isn\'t a string');
         }
-        return util.format(msg, args);
+        return util.format(msg, args.map(this.transport.preprocess));
     }
     /**
      * Links to a thread
@@ -118,9 +133,38 @@ class Wiki {
      * @todo Make cache great again
      */
     _thread(page) {
-        let split = page.split('/'),
-            threadPage = `${split[0]}/${split[1]}`;
-        return (this.threadCache[threadPage] ? `Thread:${this.threadCache[threadPage]}` : page);
+        if(typeof this._cache.threads === 'object') {
+            let split = page.split('/'),
+                threadPage = `${split[0]}/${split[1]}`;
+            if(typeof this._cache.threads[threadPage] === 'object') {
+                return this._cache.threads[threadPage];
+            } else {
+                this._cacheThread(threadPage);
+            }
+        } else {
+            this._cache.threads = {};
+        }
+        return [page, this.strings.message];
+    }
+    /**
+     * Caches a thread page
+     * @method _cacheThread
+     * @private
+     * @param {String} page Page to cache
+     */
+    _cacheThread(page) {
+        this._api('query', {
+            prop: 'revisions',
+            titles: page,
+            rvlimit: 1,
+            rvprop: 'content'
+        }).then((function(d) {
+            for(let i in d.query.pages) {
+                if(d.query.pages.hasOwnProperty(i)) {
+                    this._cache.threads[page] = [i, d.query.pages[i].revisions[0]['*'].replace(/.*<ac_metadata\s*title="([^"]+)\s*[^>]*>\s*<\/ac_metadata>/g, '$1')];
+                }
+            }
+        }).bind(this)).catch(error => this._error(error));
     }
     /**
      * Names a board
@@ -131,101 +175,30 @@ class Wiki {
      * @return {String} Named board
      */
     _board(page, ns) {
-        return this._formatMessage([`board-${ns}`, page.split(':')[1].split('/')[0]]);
+        let split = page.split(':')[1].split('/')[0];
+        return [`${(ns === 1201) ? 'Message Wall' : 'Board'}:${split}`, this._formatMessage([`board-${ns}`, split])];
     }
     /**
-     * Fetches threads and puts them in the cache
-     * @method _fetchThreads
+     * Initializes the new wiki listener
+     * @method _initNewwikis
      * @private
-     * @todo Make cache great again
      */
-    _fetchThreads() {
-        if(typeof this.config.threadfetch !== 'object') {
-            this.config.threadfetch = {};
-        }
-        if(typeof this.config.threadfetch.method !== 'string') {
-            this.config.threadfetch.method = 'api';
-        }
-        switch(this.config.threadfetch.method) {
-            case 'api': return this._fetchThreadsAPI();
-            case 'dpl': return this._fetchThreadsDPL();
-        }
-    }
-    /**
-     * Fetches threads through the API and puts them in the cache
-     * @method _fetchThreadsAPI
-     * @private
-     * @param {String} apfrom Parameter `apfrom` to pass to API
-     * @todo Make cache great again
-     */
-    _fetchThreadsAPI(apfrom, forum) {
-        let options = {
-            list: 'allpages',
-            aplimit: 5000,
-            apfilterredir: 'nonredirects',
-            apnamespace: forum ? 2001 : 1201
-        };
-        if(typeof apfrom === 'string') {
-            options.apfrom = apfrom;
-        }
-        this._api('query', options).then((function(data) {
-            data.query.allpages.filter((el) => el.title.split('/').length > 2).forEach((el) => {
-                this.threadCache[el.title] = el.pageid;
-            }, this);
-            if(data['query-continue'] && data['query-continue'].allpages && typeof data['query-continue'].allpages.apfrom === 'string') {
-                this._fetchThreadsAPI(data['query-continue'].allpages.apfrom, forum);
-            } else if(!forum) {
-                // If already went through forum threads go to wall threads
-                this._fetchThreadsAPI(undefined, true);
+    _initNewwikis(wkfrom) {
+        wkfrom = wkfrom || this._cache.wkfrom || MIN_WKFROM;
+        this._api('query', {
+            list: 'wkdomains',
+            wkcountonly: 1,
+            wkfrom: wkfrom,
+            wkto: MAX_WKTO
+        }).then((function(d) {
+            if(d.query.wkdomains.count > 0) {
+                this._initNewwikis(wkfrom + Number(d.query.wkdomains.count));
+            } else {
+                this._cache.wkfrom = wkfrom;
+                this.fetch.push(this._fetchNewwikis.bind(this));
+                ++this._tempFetchedInitial;
             }
         }).bind(this)).catch(error => this._error(error));
-    }
-    /**
-     * Generates a DPL to list threads
-     * @method _generateDPL
-     * @private
-     * @param {Number} namespace Namespace to generate a DPL for
-     * @param {Number} index Index from which to start listing
-     * @return {String} Generated DPL
-     */
-    _generateDPL(namespace, index) {
-        return `<dpl>
-            namespace   = ${namespace}
-            titleregexp = \\w+\\/@comment-[^\\/]+$
-            showcurid   = true
-            offset      = ${index * 500}
-        </dpl>`;
-    }
-    /**
-     * Fetch threads through DPLs and cache them
-     * @method _fetchThreadsDPL
-     * @private
-     * @param {Number} index Index of the current fetch
-     */
-    _fetchThreadsDPL(index) {
-        index = index || 0;
-        let text = '',
-            offset = this.config.threadfetch.offset || 1;
-        for(var i = 0; i < offset; ++i) {
-            text += this.generateDPL('Thread', index + i) + this.generateDPL('Board_Thread', index + i);
-        }
-        this._api('parse', { text: text  })
-            .then(function(data) {
-                if(data && data.parse && data.parse.text && typeof data.parse.text['*'] === 'string') {
-                    let regex = /<a  class="text" href="http:\/\/\w+\.wikia\.com\/wiki\/[^?]+\?curid=(\d+)">([^<]+)<\/a>/g,
-                        matches = data.parse.text['*'].match(regex);
-                    if(matches && matches.length > 0) {
-                        matches.forEach((el) => {
-                            let result = regex.exec(el);
-                            this.threadCache[result[2]] = result[1];
-                            regex.exec('javascript sucks'); // it really does
-                        }, this);
-                        this.log(`fetched ${matches.length}`);
-                        this.fetchThreadsDPL(index + offset);
-                    }
-                }
-            }.bind(this))
-            .catch(error => this._error(error));
     }
     /**
      * Initializes the interval
@@ -240,6 +213,9 @@ class Wiki {
                 .then((function() {
                     if(++this._tempFetchedInitial === this.fetch.length) {
                         this._hook('initInterval');
+                        if(this.config.welcome) {
+                            this.transport.send(this._formatMessage(['start', process.env.npm_package_name, process.env.npm_package_version]));
+                        }
                         this.interval = setInterval(this._update.bind(this), (this.config.interval || 500));
                     }
                 }).bind(this))
@@ -341,7 +317,29 @@ class Wiki {
         }).bind(this));
     }
     /**
-     * Returnes the fetcher method based on the configuration option
+     * Fetches new wiki information
+     * @method _fetchNewwikis
+     * @private
+     * @return {Promise} Promise to listen for response on
+     */
+    _fetchNewwikis() {
+        return this._api('query', {
+            list: 'wkdomains',
+            wkfrom: this._cache.wkfrom,
+            wkto: MAX_WKTO
+        }, (function(data) {
+            let obj = data.query.wkdomains, arr = [];
+            for(var i in obj) {
+                if(obj.hasOwnProperty(i)) {
+                    ++this._cache.wkfrom;
+                    arr.push(obj[i]);
+                }
+            }
+            return arr;
+        }).bind(this));
+    }
+    /**
+     * Returns the fetcher method based on the configuration option
      * @method _dispatchFetcher
      * @private
      * @param {String} type Configuration option
@@ -394,17 +392,19 @@ class Wiki {
                 if(typeof info.filter_id === 'number') {
                     // This is an abuse log
                     return ['abuselog', info.user, info.filter_id, info.filter, info.action, info.title, this.strings[`action-${info.result}`]];
+                } else if(typeof info.domain === 'string') {
+                    return ['newwikis', info.domain];
                 }
                 break;
             case 'new':
                 // Not a log
                 return (info.ns === 1201 || info.ns === 2001) ?
-                    ['newthread', info.user, this._thread(info.title), this._board(info.title, info.ns), (info.newlen - info.oldlen), info.comment] :
+                    ['newthread', info.user].concat(this._thread(info.title), this._board(info.title, info.ns), (info.newlen - info.oldlen), info.comment) :
                     ['new', info.user, info.title, (info.newlen - info.oldlen), info.comment];
             case 'edit':
                 // Not a log
                 return (info.ns === 1201 || info.ns === 2001) ?
-                    ['editthread', info.user, this._board(info.title, info.ns), (info.newlen - info.oldlen), info.revid, info.comment] :
+                    ['editthread', info.user].concat(this._board(info.title, info.ns), (info.newlen - info.oldlen), info.revid, info.comment) :
                     ['edit', info.user, info.title, (info.newlen - info.oldlen), info.revid, info.comment];
             case 'log':
                 if(info.logtype !== '0') {
@@ -412,10 +412,10 @@ class Wiki {
                 }
                 switch(info.logaction) {
                     // Why Wikia, why
-                    case 'wall_archive': return ['threadclose', info.user, this._thread(info.title), this._board(info.title, info.ns), info.comment];
-                    case 'wall_remove': return ['threadremove', info.user, this._thread(info.title), this._board(info.title, info.ns), info.comment];
-                    case 'wall_admindelete': return ['threaddelete', info.user, this._thread(info.title), this._board(info.title, info.ns), info.comment];
-                    case 'wall_restore': return ['threadrestore', info.user, this._thread(info.title), this._board(info.title, info.ns), info.comment];
+                    case 'wall_archive': return ['threadclose', info.user].concat(this._thread(info.title), this._board(info.title, info.ns), info.comment);
+                    case 'wall_remove': return ['threadremove', info.user].concat(this._thread(info.title), this._board(info.title, info.ns), info.comment);
+                    case 'wall_admindelete': return ['threaddelete', info.user].concat(this._thread(info.title), this._board(info.title, info.ns), info.comment);
+                    case 'wall_restore': return ['threadrestore', info.user].concat(this._thread(info.title), this._board(info.title, info.ns), info.comment);
                 }
                 break;
             case 'block':
@@ -506,6 +506,13 @@ class Wiki {
      */
     destroy() {
         clearInterval(this.interval);
+    }
+    /**
+     * Get cache
+     * @return {Object} Cache
+     */
+    get cache() {
+        return this._cache;
     }
 }
 
