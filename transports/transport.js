@@ -41,6 +41,18 @@ class Transport {
      */
     send(message) { // jshint ignore: line
         util.logError('`send` method not implemented!', this.modul, 'prototype.send');
+        throw new Error('`send` method not implemented!');
+    }
+    /**
+     * Preprocesses the argument passed to the template
+     * @method preprocess
+     * @param {String} arg
+     * @return {String} Preprocessed argument
+     * @throws {Error} If not implemented through subclasses
+     */
+    preprocess(arg) { // jshint ignore: line
+        util.logError('`preprocess` method not implemented!', this.modul, 'prototype.send');
+        throw new Error('`preprocess` method not implemented!');
     }
     /**
      * Parses the message from the wiki to fit the transport's needs

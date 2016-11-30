@@ -1,12 +1,12 @@
 {
     "edit": "{{user|$1}} editó {{link|$2}} {{diffSize|$3}} {{diff|$4}} {{summary|$5}}",
-    "editthread": "{{user|$1}} editó la respuesta en $2 {{diffSize|$3}} {{diff|$4}}",
+    "editthread": "{{user|$1}} editó la respuesta en {{link|$2|$3}} {{diffSize|$4}} {{diff|$5}}",
     "new": "{{user|$1}} creó {{link|$2}} {{diffSize|$3}} {{summary|$4}}",
-    "newthread": "{{user|$1}} dejó {{link|$2|un mensaje}} en $3 {{diffSize|$4}} {{summary|$5}}",
-    "threadclose": "{{user|$1}} cerró {{link|$2|un hilo}} en $3 {{summary|$4}}",
-    "threadremove": "{{user|$1}} retiró {{link|$2|un hilo}} de $3 {{summary|$4}}",
-    "threaddelete": "{{user|$1}} retiró {{link|$2|un hilo}} de $3 {{summary|$4}}",
-    "threadrestore": "{{user|$1}} restauró {{link|$2|un hilo}} en $3 {{summary|$4}}",
+    "newthread": "{{user|$1}} dejó {{link|$2|$3}} en {{link|$4|$5}} {{diffSize|$6}} {{summary|$7}}",
+    "threadclose": "{{user|$1}} cerró {{link|$2|$3}} en {{link|$4|$5}} {{summary|$5}}",
+    "threadremove": "{{user|$1}} retiró {{link|$2|$3}} de {{link|$4|$5}} {{summary|$5}}",
+    "threaddelete": "{{user|$1}} retiró {{link|$2|$3}} de {{link|$4|$5}} {{summary|$5}}",
+    "threadrestore": "{{user|$1}} restauró {{link|$2|$3}} en {{link|$4|$5}} {{summary|$5}}",
     "block": "{{user|$1}} bloqueó a {{userlink|$2}} por $3 [$4] {{summary|$5}}",
     "unblock": "{{user|$1}} desbloqueó a {{userlink|$2}} {{summary|$3}}",
     "reblock": "{{user|$1}} cambió el bloqueo para {{userlink|$2}} por $3 {{summary|$4}}",
@@ -45,5 +45,8 @@
     "board-2001": "Foro de $1",
     "diff": "diff",
     "talk": "d",
-    "contribs": "c"
+    "contribs": "c",
+    "message": "un mensaje",
+    "newwikis": "New wiki! {{wiki|$1}}",
+    "start": "$1 v$2 successfully initialized!"
 }

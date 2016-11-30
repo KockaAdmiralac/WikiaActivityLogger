@@ -103,7 +103,7 @@ class CLI extends Controller {
                         == Package info
                         ${env.npm_package_name} v${env.npm_package_version}
                         Description: ${env.npm_package_description}
-                        Author: ${env.npm_package_author}
+                        Author: ${env.npm_package_author_name}
                         Homepage: ${env.npm_package_homepage}
                         License: ${env.npm_package_license}
                         == Running info
