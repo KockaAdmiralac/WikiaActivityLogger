@@ -47,6 +47,6 @@
     "talk": "d",
     "contribs": "c",
     "message": "un mensaje",
-    "newwikis": "New wiki! {{wiki|$1}}",
-    "start": "$1 v$2 successfully initialized!"
+    "newwikis": "¡Nuevo wiki! {{wiki|$1}}",
+    "start": "¡$1 v$2 se inició correctamente!"
 }
