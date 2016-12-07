@@ -137,7 +137,9 @@ class Wiki {
             let split = page.split('/'),
                 threadPage = `${split[0]}/${split[1]}`;
             if(typeof this._cache.threads[threadPage] === 'object') {
-                return this._cache.threads[threadPage];
+                let thread = this._cache.threads[threadPage];
+                thread[0] = `Thread:${thread[0]}`;
+                return thread;
             } else {
                 this._cacheThread(threadPage);
             }
@@ -161,7 +163,7 @@ class Wiki {
         }).then((function(d) {
             for(let i in d.query.pages) {
                 if(d.query.pages.hasOwnProperty(i)) {
-                    this._cache.threads[page] = [i, d.query.pages[i].revisions[0]['*'].replace(/.*<ac_metadata\s*title="([^"]+)\s*[^>]*>\s*<\/ac_metadata>/g, '$1')];
+                    this._cache.threads[page] = [i, /<ac_metadata\s*title="([^"]+)\s*[^>]*>\s*<\/ac_metadata>/g.exec(d.query.pages[i].revisions[0]['*'])[1]];
                 }
             }
         }).bind(this)).catch(error => this._error(error));
@@ -335,7 +337,7 @@ class Wiki {
                     arr.push(obj[i]);
                 }
             }
-            return arr;
+            return arr.filter((el) => !(/qatestwiki/.test(el)));
         }).bind(this));
     }
     /**
@@ -484,6 +486,15 @@ class Wiki {
                 switch(info.action) {
                     case 'interwiki': return ['debug', JSON.stringify(info)]; // TODO
                     case 'upload': return ['import', info.user, info.title, info.comment];
+                }
+                break;
+            case 'maps':
+                switch(info.action) {
+                    case 'create_pin': return ['createpin', info.user, info.title, info.summary];
+                    case 'delete_pin': return ['deletepin', info.user, info.title];
+                    case 'update_pin': return ['updatepin', info.user, info.title, info.summary];
+                    case 'create_map': return ['createmap', info.user, info.title, info.summary];
+                    case 'delete_map': return ['deletemap', info.user];
                 }
                 break;
             case 'renameuser': return ['renameuser', info.user, info.comment];
