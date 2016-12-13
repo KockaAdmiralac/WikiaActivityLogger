@@ -39,9 +39,6 @@ class Wiki {
         io.jar = jar;
         this._initStrings();
         this._initTransport();
-        if(this.config.newwikis) {
-            this._initNewwikis();
-        }
         let fetchSources = this.config.fetch || ['rc', 'log'];
         this.fetch = fetchSources.map(this._dispatchFetcher.bind(this));
         this._initInterval();
@@ -138,6 +135,8 @@ class Wiki {
                 threadPage = `${split[0]}/${split[1]}`;
             if(typeof this._cache.threads[threadPage] === 'object') {
                 let thread = this._cache.threads[threadPage];
+                // TODO: Temporary bugfix, I've no idea why is this happening
+                thread.replace(/Thread:/g, '');
                 thread[0] = `Thread:${thread[0]}`;
                 return thread;
             } else {
@@ -197,8 +196,7 @@ class Wiki {
                 this._initNewwikis(wkfrom + Number(d.query.wkdomains.count));
             } else {
                 this._cache.wkfrom = wkfrom;
-                this.fetch.push(this._fetchNewwikis.bind(this));
-                ++this._tempFetchedInitial;
+                this._newwikisInitialized = true;
             }
         }).bind(this)).catch(error => this._error(error));
     }
@@ -327,9 +325,13 @@ class Wiki {
     _fetchNewwikis() {
         return this._api('query', {
             list: 'wkdomains',
-            wkfrom: this._cache.wkfrom,
+            wkfrom: this._cache.wkfrom || MAX_WKTO,
             wkto: MAX_WKTO
         }, (function(data) {
+            if(!this._newwikisInitialized) {
+                // TODO: This isn't optimal for bandwidth
+                return [];
+            }
             let obj = data.query.wkdomains, arr = [];
             for(var i in obj) {
                 if(obj.hasOwnProperty(i)) {
@@ -337,7 +339,7 @@ class Wiki {
                     arr.push(obj[i]);
                 }
             }
-            return arr.filter((el) => !(/qatestwiki/.test(el)));
+            return arr.filter((el) => !(/qatestwiki/.test(el.domain)));
         }).bind(this));
     }
     /**
@@ -358,6 +360,9 @@ class Wiki {
             case 'al':
             case 'abuse log':
                 return this._fetchAbuseLog;
+            case 'newwikis':
+                this._initNewwikis();
+                return this._fetchNewwikis;
         }
     }
     /**

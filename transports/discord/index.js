@@ -24,11 +24,13 @@ class Discord extends Transport {
     constructor(config, wikiname, strings) {
         config.type = config.type || 'webhook';
         super(config, wikiname, 'Discord', strings);
-        if(config.type !== 'webhook') {
-            util.logError('Discord transport does not currently support any method other than webhook', 'Discord', 'constructor');
-        }
-        if(typeof config.id === 'string' && typeof config.token === 'string') {
-            this.url = `https://discordapp.com/api/webhooks/${config.id}/${config.token}`;
+        if(typeof config.url === 'string') {
+            this.url = config.url;
+        } else if(typeof config.id === 'string' && typeof config.token === 'string') {
+            this.url = `https://discordapp.com/api/${config.type === 'bot' ?
+                `/channels/${config.id}/messages?token=${config.token}` :
+                `webhooks/${config.id}/${config.token}`
+            }`;
         }
         this.queue = [];
     }
