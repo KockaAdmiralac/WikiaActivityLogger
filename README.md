@@ -1,5 +1,5 @@
 # WikiaActivityLogger
-A simple tool built in [Node.js](https://nodejs.org) for logging activity of a [Wikia](http://community.wikia.com) wiki through several transports (currently only supported transport is [Discord](https://discordapp.com)).
+A simple tool built in [Node.js](https://nodejs.org) for logging activity of a [Wikia](http://community.wikia.com) wiki through several transports (currently only supported transports are [Discord](https://discordapp.com) and [Slack](https://slack.com)).
 
 Documentation can be found [here](http://kocka.wikia.com/wiki/WikiaActivityLogger)
 
@@ -11,4 +11,6 @@ Documentation can be found [here](http://kocka.wikia.com/wiki/WikiaActivityLogge
 
 ## Known bugs
 - If the thread gets moved the logger still shows the old board (Wikia y u do dis to me ;-;)
-- Unknown `aflpermissionerror` error?
+- `aflpermissionerror` error?
+- Weird issue with message type not being passed when ratelimited
+- Thread title characters are HTML entities sometimes

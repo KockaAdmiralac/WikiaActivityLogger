@@ -19,16 +19,17 @@ class Transport {
      * Class constructor
      * @constructor
      * @param {Object} config Transport configuration
-     * @param {String} wikiname Subdomain of the wiki
+     * @param {String} info Information about the wiki
      * @param {String} modul Module name
+     * @param {Object} strings Strings data
      * @throws {Error} If improperly called
      */
-    constructor(config, wikiname, modul, strings) {
-        if(typeof config !== 'object' || typeof wikiname !== 'string' || typeof modul !== 'string') {
+    constructor(config, info, modul, strings) {
+        if(typeof config !== 'object' || typeof info !== 'object' || typeof modul !== 'string') {
             throw new Error(`Constructor parameters incorrectly supplied! (${modul || 'Transport'}.constructor)`);
         }
         this.modul = modul;
-        this.wikiname = wikiname;
+        this.info = info;
         this.config = config;
         this.strings = strings;
     }
@@ -40,8 +41,27 @@ class Transport {
      * @throws {Error} If not implemented through subclasses
      */
     send(message) { // jshint ignore: line
-        util.logError('`send` method not implemented!', this.modul, 'prototype.send');
+        main.hook('error', '`send` method not implemented!', this.modul, 'prototype.send');
         throw new Error('`send` method not implemented!');
+    }
+    /**
+     * Shorthand for util.format with some validation
+     * @method _formatMessage
+     * @private
+     * @param {Array<String>} args Arguments of the message
+     * @return {String} Formatted message
+     */
+    _formatMessage(args) {
+        if(!(args instanceof Array)) {
+            main.hook('error', 'Given arguments aren\'t an array', this.modal, 'prototype._formatMessage');
+            return;
+        }
+        let msg = this.strings[args.splice(0, 1)[0]];
+        if(typeof msg !== 'string') {
+            main.hook('error', 'Given message isn\'t a string', this.modul, 'prototype._formatMessage');
+            return;
+        }
+        return util.format(msg, args.map(this.preprocess));
     }
     /**
      * Preprocesses the argument passed to the template
@@ -51,8 +71,8 @@ class Transport {
      * @throws {Error} If not implemented through subclasses
      */
     preprocess(arg) { // jshint ignore: line
-        util.logError('`preprocess` method not implemented!', this.modul, 'prototype.send');
-        throw new Error('`preprocess` method not implemented!');
+        main.hook('error', '`preprocess` method not implemented!', this.modul, 'prototype.send');
+        return;
     }
     /**
      * Parses the message from the wiki to fit the transport's needs
@@ -62,7 +82,7 @@ class Transport {
      * @return {String} Parsed message
      */
     parse(message) {
-        return message.replace(/{{([^\}]*)}}/g, (function(_, template) {
+        return message.replace(/\\}/g, '').replace(/{{([^\}]*)}}/g, (function(_, template) {
             let args = template.split('|');
             return this.template(args.splice(0, 1)[0], args);
         }).bind(this));
