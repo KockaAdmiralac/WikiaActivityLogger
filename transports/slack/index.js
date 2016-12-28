@@ -38,8 +38,13 @@ class Slack extends Transport {
      * @param {String} message Message to send
      */
     send(message) {
+        let format = this._formatMessage(message);
+        if(typeof format !== 'string') {
+            // An error occurred while parsing
+            return;
+        }
         io.post(this.url, {
-            text: this.parse(this._formatMessage(message))
+            text: this.parse(format)
         }, undefined, true);
     }
     /**

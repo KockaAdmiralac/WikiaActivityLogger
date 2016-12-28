@@ -55,7 +55,6 @@ class Discord extends Transport {
                 .catch((function(error) {
                     switch(error.statusCode) {
                         case 429:
-                            console.log('HIT RATE LIMIT');
                             this.rateLimit = true;
                             this.queue.push(message);
                             setTimeout((function() {
