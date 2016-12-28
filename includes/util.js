@@ -31,12 +31,13 @@ class Util {
      * Returns a link to a page on a wiki
      * @method linkToArticle
      * @static
-     * @param {String} wiki The wiki subdomain
+     * @param {String} wiki The wiki domain
+     * @param {String} path Article path of the wiki
      * @param {String} page The page to link to
      * @return {String} Full link
      */
-    static linkToArticle(wiki, page) {
-        return `${Util.linkToWiki(wiki)}/wiki/${Util.encodePageName(page)}`;
+    static linkToArticle(wiki, path, page) {
+        return `${wiki}${path.replace(/\$1/g, Util.encodePageName(page))}`;
     }
     /**
      * Returns a link to a diff

@@ -11,4 +11,5 @@ Documentation can be found [here](http://kocka.wikia.com/wiki/WikiaActivityLogge
 
 ## Known bugs
 - If the thread gets moved the logger still shows the old board (Wikia y u do dis to me ;-;)
-- Unknown `aflpermissionerror` error?
+- `aflpermissionerror` error?
+- Weird issue with message type not being passed when ratelimited

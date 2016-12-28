@@ -3,8 +3,7 @@
 /**
  * Importing modules
  */
-const io = require('./io.js'),
-      util = require('./util.js');
+const io = require('./io.js');
 
 /**
  * Constants
@@ -38,10 +37,7 @@ class Wiki {
         this.language = this.config.language || lang;
         io.jar = jar;
         this._initStrings();
-        this._initTransport();
-        let fetchSources = this.config.fetch || ['rc', 'log'];
-        this.fetch = fetchSources.map(this._dispatchFetcher.bind(this));
-        this._initInterval();
+        this._fetchInfo();
     }
     /**
      * Initializes string data
@@ -65,9 +61,25 @@ class Wiki {
         let t = this.config.transport;
         if(typeof t === 'object' && typeof t.platform === 'string') {
             let Transport = require(`../transports/${t.platform}/index.js`);
-            this.transport = new Transport(t, this.name, this.strings);
+            this.transport = new Transport(t, this.info, this.strings);
         } else {
             this._error('Transport configuration invalid!');
+        }
+    }
+    /**
+     * Initializes fetch sources
+     * @method _initSources
+     * @private
+     */
+    _initSources() {
+        let fetchSources = this.config.fetch || ['rc', 'log'];
+        this.fetch = fetchSources.map(this._dispatchFetcher.bind(this));
+        if(this.fetch.indexOf(this._fetchAbuseLog) !== -1 && this.info.userinfo.rights.indexOf('abusefilter-log') === -1) {
+            // The user does not have permissions to view
+            // the abuse log (isn't logged in) or the wiki
+            // doesn't have AbuseFilter enabled
+            this._error('Failed to initialize abuse log listener!');
+            this.fetch = this.fetch.filter(f => f !== this._fetchAbuseLog);
         }
     }
     /**
@@ -104,24 +116,6 @@ class Wiki {
         return io.api(this.name, action, data, transform);
     }
     /**
-     * Shorthand for util.format with some validation
-     * @method _formatMessage
-     * @private
-     * @param {Array<String>} args Arguments of the message
-     * @return {String} Formatted message
-     */
-    _formatMessage(args) {
-        if(!(args instanceof Array)) {
-            // Some stuff happened so we shouldn't care
-            return;
-        }
-        let msg = this.strings[args.splice(0, 1)[0]];
-        if(typeof msg !== 'string') {
-            this._error('Given message isn\'t a string');
-        }
-        return util.format(msg, args.map(this.transport.preprocess));
-    }
-    /**
      * Links to a thread
      * @method _thread
      * @private
@@ -136,8 +130,7 @@ class Wiki {
             if(typeof this._cache.threads[threadPage] === 'object') {
                 let thread = this._cache.threads[threadPage];
                 // TODO: Temporary bugfix, I've no idea why is this happening
-                thread.replace(/Thread:/g, '');
-                thread[0] = `Thread:${thread[0]}`;
+                thread[0] = `Thread:${thread[0].replace(/Thread:/g, '')}`;
                 return thread;
             } else {
                 this._cacheThread(threadPage);
@@ -177,7 +170,24 @@ class Wiki {
      */
     _board(page, ns) {
         let split = page.split(':')[1].split('/')[0];
-        return [`${(ns === 1201) ? 'Message Wall' : 'Board'}:${split}`, this._formatMessage([`board-${ns}`, split])];
+        return [ns, split];
+    }
+    /**
+     * Fetches information about the wiki from the API
+     * @method _fetchInfo
+     * @private
+     */
+    _fetchInfo() {
+        this._api('query', {
+            meta: 'siteinfo|userinfo',
+            siprop: 'general|statistics|rightsinfo|skins|category|wikidesc|namespaces',
+            uiprop: 'blockinfo|rights|groups|changeablegroups|options|preferencestoken|editcount|ratelimits|registrationdate'
+        }).then((function(d) {
+            this.info = d.query;
+            this._initTransport();
+            this._initSources();
+            this._initInterval();
+        }).bind(this)).catch(error => this._error(error));
     }
     /**
      * Initializes the new wiki listener
@@ -214,7 +224,7 @@ class Wiki {
                     if(++this._tempFetchedInitial === this.fetch.length) {
                         this._hook('initInterval');
                         if(this.config.welcome) {
-                            this.transport.send(this._formatMessage(['start', process.env.npm_package_name, process.env.npm_package_version]));
+                            this.transport.send(['start', process.env.npm_package_name, process.env.npm_package_version]);
                         }
                         this.interval = setInterval(this._update.bind(this), (this.config.interval || 500));
                     }
@@ -376,8 +386,8 @@ class Wiki {
                 .then(function(data) {
                     if(data.length > 0) {
                         data.forEach(function(entry) {
-                            let result = this._formatMessage(this._handle(entry));
-                            if(typeof result === 'string') {
+                            let result = this._handle(entry);
+                            if(result instanceof Array) {
                                 this.transport.send(result);
                             }
                         }, this);
@@ -391,7 +401,7 @@ class Wiki {
      * @method _handle
      * @private
      * @param {Object} info Information about the entry
-     * @return {Array<String>} Array of information to be passed to _formatMessage
+     * @return {Array<String>} Array of information to be passed to the transport
      */
     _handle(info) {
         switch(info.type) {

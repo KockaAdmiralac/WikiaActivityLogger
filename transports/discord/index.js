@@ -1,5 +1,5 @@
 /**
- * discord.js
+ * index.js
  * Module for transferring messages through [Discord](https://discordapp.com)
  */
 'use strict';
@@ -21,14 +21,14 @@ class Discord extends Transport {
      * Class constructor
      * @constructor
      */
-    constructor(config, wikiname, strings) {
+    constructor(config, info, strings) {
         config.type = config.type || 'webhook';
-        super(config, wikiname, 'Discord', strings);
+        super(config, info, 'Discord', strings);
         if(typeof config.url === 'string') {
             this.url = config.url;
         } else if(typeof config.id === 'string' && typeof config.token === 'string') {
             this.url = `https://discordapp.com/api/${config.type === 'bot' ?
-                `/channels/${config.id}/messages?token=${config.token}` :
+                `channels/${config.id}/messages?token=${config.token}` :
                 `webhooks/${config.id}/${config.token}`
             }`;
         }
@@ -44,17 +44,25 @@ class Discord extends Transport {
         if(this.rateLimit) {
             this.queue.push(message);
         } else {
+            let format = this._formatMessage(message);
+            if(typeof format !== 'string') {
+                // An error occurred while parsing
+                return;
+            }
             io.post(this.url, {
-                content: this.parse(message)
+                content: this.parse(format)
             }, undefined, true)
                 .catch((function(error) {
                     switch(error.statusCode) {
                         case 429:
+                            console.log('HIT RATE LIMIT');
                             this.rateLimit = true;
                             this.queue.push(message);
                             setTimeout((function() {
                                 this.rateLimit = false;
-                                this.queue.forEach(this.send, this);
+                                this.queue.forEach(function(el) {
+                                    this.send(el);
+                                }, this);
                                 this.queue = [];
                             }).bind(this), error.error.retry_after);
                             break;
@@ -113,7 +121,8 @@ class Discord extends Transport {
      * @return {String} Link to the page
      */
     _link(page) {
-        return util.linkToArticle(this.wikiname, page);
+        let general = this.info.general;
+        return util.linkToArticle(general.server, general.articlepath, page);
     }
     /**
      * Creates a markdown link ([text](link))
@@ -156,6 +165,8 @@ class Discord extends Transport {
                 return `\`\`\`${args[0]}\`\`\``;
             case 'wiki':
                 return `<http://${args[0]}>`;
+            case 'board':
+                return this._mdLink(this._link(`${this.info.namespaces[args[0]]}:${args[1]}`), this._formatMessage([`board-${args[0]}`, args[1]]));
         }
     }
 }

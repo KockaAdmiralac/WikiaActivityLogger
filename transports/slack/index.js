@@ -21,9 +21,9 @@ class Slack extends Transport {
      * Class constructor
      * @constructor
      */
-    constructor(config, wikiname, strings) {
+    constructor(config, info, strings) {
         config.type = config.type || 'webhook';
-        super(config, wikiname, 'Slack', strings);
+        super(config, info, 'Slack', strings);
         if(typeof config.url !== 'string') {
             main.hook('error', 'Slack webhook URL must be supplied!', 'Slack', 'constructor');
         }
@@ -32,13 +32,14 @@ class Slack extends Transport {
     /**
      * Bot calls this method when it wants to send a message
      * through a transport.
-     * Does not care about rate limits because
+     * Does not care about rate limits because Slack's rate limits
+     * are extremely high from what tests have proven
      * @method send
      * @param {String} message Message to send
      */
     send(message) {
         io.post(this.url, {
-            text: this.parse(message)
+            text: this.parse(this._formatMessage(message))
         }, undefined, true);
     }
     /**
@@ -77,7 +78,8 @@ class Slack extends Transport {
      * @return {String} Link to the page
      */
     _link(page) {
-        return util.linkToArticle(this.wikiname, page);
+        let general = this.info.general;
+        return util.linkToArticle(general.server, general.articlepath, page);
     }
     /**
      * Creates a markdown link ([text](link))
@@ -120,6 +122,8 @@ class Slack extends Transport {
                 return `\`\`\`${args[0]}\`\`\``;
             case 'wiki':
                 return `http://${args[0]}`;
+            case 'board':
+                return this._slackLink(this._link(`${this.info.namespaces[args[0]]}:${args[1]}`), this._formatMessage([`board-${args[0]}`, args[1]]));
         }
     }
 }
