@@ -18,16 +18,6 @@ class Util {
         main.hook('error', 'This is a static class!', 'Util', 'constructor');
     }
     /**
-     * Returns a link to a wiki
-     * @method linkToWiki
-     * @static
-     * @param {String} wiki The wiki subdomain
-     * @return {String} Full link
-     */
-    static linkToWiki(wiki) {
-        return `http://${wiki}.wikia.com`;
-    }
-    /**
      * Returns a link to a page on a wiki
      * @method linkToArticle
      * @static
@@ -43,12 +33,13 @@ class Util {
      * Returns a link to a diff
      * @method linkToDiff
      * @static
-     * @param {String} wiki The wiki subdomain
+     * @param {String} server The wiki domain
+     * @param {String} script The wiki script path
      * @param {String} id The diff ID
      * @return {String} Full link
      */
-    static linkToDiff(wiki, id) {
-        return `${Util.linkToWiki(wiki)}/?diff=${id}`;
+    static linkToDiff(server, script, id) {
+        return `${server}${script}/?diff=${id}`;
     }
     /**
      * Encodes the page name but decodes some characters

@@ -144,7 +144,9 @@ class Discord extends Transport {
      */
     template(name, args) {
         switch(name) {
-            case 'diff': return `(${this._mdLink(util.linkToDiff(this.wikiname, args[0]), this.strings.diff)})`;
+            case 'diff':
+                let general = this.info.general;
+                return `(${this._mdLink(util.linkToDiff(general.server, general.scriptpath, args[0]), this.strings.diff)})`;
             case 'diffSize':
                 let bold = '*'.repeat((args[0] > 1000 || args[0] < -1000) ? 2 : 1);
                 if(args[0] > 0) {
@@ -165,7 +167,7 @@ class Discord extends Transport {
             case 'wiki':
                 return `<http://${args[0]}>`;
             case 'board':
-                return this._mdLink(this._link(`${this.info.namespaces[args[0]]}:${args[1]}`), this._formatMessage([`board-${args[0]}`, args[1]]));
+                return this._mdLink(this._link(`${this.info.namespaces[args[0] - 1]['*']}:${args[1]}`), this._formatMessage([`board-${args[0]}`, args[1]]));
         }
     }
 }
