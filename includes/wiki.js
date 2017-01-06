@@ -30,14 +30,26 @@ class Wiki {
         }
         this.name = name;
         this._hook('initStart');
-        this.config = config;
+        this._initConfig(config, lang);
         this._cache = cache || {
             threads: {}
         };
-        this.language = this.config.language || lang;
         io.jar = jar;
         this._initStrings();
         this._fetchInfo();
+    }
+    /**
+     * Initializes wiki configuration
+     * @method _initConfig
+     * @private
+     * @param {Object} config Configuration object
+     * @param {String} lang Wiki language
+     */
+    _initConfig(config, lang) {
+        this.config = config;
+        this.bots = this.config.bots || ['Wikia', 'WikiaBot', 'Fandom', 'FandomBot'];
+        this.excludefilter = this.config.excludefilter || [];
+        this.language = this.config.language || lang;
     }
     /**
      * Initializes string data
@@ -256,7 +268,7 @@ class Wiki {
                 let rc = data.query.recentchanges,
                     rcdate = new Date(this.rcend);
                 if(typeof this.rcend === 'string') {
-                    rc = rc.filter((el) => new Date(el.timestamp) > rcdate);
+                    rc = rc.filter((el => new Date(el.timestamp) > rcdate && !(el.user in this.bots)), this);
                 }
                 this.rcend = data.query.recentchanges[0].timestamp;
                 return rc;
@@ -285,10 +297,10 @@ class Wiki {
         }
         return this._api('query', options, (function(data) {
             if(data.query && data.query.logevents instanceof Array) {
-                var log = data.query.logevents,
+                let log = data.query.logevents,
                     logdate = new Date(this.leend);
                 if(typeof this.leend === 'string') {
-                    log = log.filter((el) => new Date(el.timestamp) > logdate);
+                    log = log.filter((el => new Date(el.timestamp) > logdate && !(el.user in this.bots)), this);
                 }
                 this.leend = data.query.logevents[0].timestamp;
                 return log;
@@ -314,15 +326,15 @@ class Wiki {
         }
         return this._api('query', options, (function(data) {
             if(data.query && data.query.abuselog instanceof Array) {
-                var log = data.query.abuselog,
+                let log = data.query.abuselog,
                     logdate = new Date(this.aflend);
                 if(typeof this.aflend === 'string') {
-                    log = log.filter((el) => new Date(el.timestamp) > logdate);
+                    log = log.filter((el => new Date(el.timestamp) > logdate && !(el.id in this.excludefilter)), this);
                 }
                 this.aflend = data.query.abuselog[0].timestamp;
                 return log;
             } else {
-                this._error('Abuse log data not valid');
+                this._error('Invalid abuse log data');
             }
         }).bind(this));
     }
@@ -343,7 +355,7 @@ class Wiki {
                 return [];
             }
             let obj = data.query.wkdomains, arr = [];
-            for(var i in obj) {
+            for(let i in obj) {
                 if(obj.hasOwnProperty(i)) {
                     ++this._cache.wkfrom;
                     arr.push(obj[i]);
