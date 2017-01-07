@@ -268,7 +268,7 @@ class Wiki {
                 let rc = data.query.recentchanges,
                     rcdate = new Date(this.rcend);
                 if(typeof this.rcend === 'string') {
-                    rc = rc.filter((el => new Date(el.timestamp) > rcdate && !(el.user in this.bots)), this);
+                    rc = rc.filter((el => new Date(el.timestamp) > rcdate && this.bots.indexOf(el.user) === -1), this);
                 }
                 this.rcend = data.query.recentchanges[0].timestamp;
                 return rc;
@@ -300,7 +300,7 @@ class Wiki {
                 let log = data.query.logevents,
                     logdate = new Date(this.leend);
                 if(typeof this.leend === 'string') {
-                    log = log.filter((el => new Date(el.timestamp) > logdate && !(el.user in this.bots)), this);
+                    log = log.filter((el => new Date(el.timestamp) > logdate && this.bots.indexOf(el.user) === -1), this);
                 }
                 this.leend = data.query.logevents[0].timestamp;
                 return log;
@@ -329,7 +329,7 @@ class Wiki {
                 let log = data.query.abuselog,
                     logdate = new Date(this.aflend);
                 if(typeof this.aflend === 'string') {
-                    log = log.filter((el => new Date(el.timestamp) > logdate && !(el.id in this.excludefilter)), this);
+                    log = log.filter((el => new Date(el.timestamp) > logdate && this.excludefilter.indexOf(Number(el.filter_id)) === -1), this);
                 }
                 this.aflend = data.query.abuselog[0].timestamp;
                 return log;
