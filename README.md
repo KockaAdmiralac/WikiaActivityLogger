@@ -8,6 +8,8 @@ Documentation can be found [here](http://kocka.wikia.com/wiki/WikiaActivityLogge
 - Caching
 - GUI. Electron. Stuff
 - Use `export` and `import` instead of `module.exports`
+- Auto-updater or at least update notification
+- Extensions. Especially abuse filter extension.
 
 ## Known bugs
 - If the thread gets moved the logger still shows the old board (Wikia y u do dis to me ;-;)
