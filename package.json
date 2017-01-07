@@ -22,7 +22,11 @@
         },
         {
             "name": "Mamvik",
-            "url": "http://mamvik.wikia.com"
+            "url": "http://c.wikia.com/wiki/User:Mamvik"
+        },
+        {
+            "name": "Dark Yada",
+            "url": "http://c.wikia.com/wiki/User:Dark_Yada"
         }
     ],
     "main": "index.js",
