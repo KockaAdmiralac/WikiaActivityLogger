@@ -38,7 +38,7 @@ class Slack extends Transport {
      * @param {String} message Message to send
      */
     send(message) {
-        let format = this._formatMessage(message);
+        const format = this._formatMessage(message);
         if(typeof format !== 'string') {
             // An error occurred while parsing
             return;
@@ -83,7 +83,7 @@ class Slack extends Transport {
      * @return {String} Link to the page
      */
     _link(page) {
-        let general = this.info.general;
+        const general = this.info.general;
         return util.linkToArticle(general.server, general.articlepath, page);
     }
     /**
@@ -108,10 +108,10 @@ class Slack extends Transport {
     template(name, args) {
         switch(name) {
             case 'diff':
-                let general = this.info.general;
+                const general = this.info.general;
                 return `(${this._slackLink(util.linkToDiff(general.server, general.scriptpath, args[0]), this.strings.diff)})`;
             case 'diffSize':
-                let bold = (args[0] > 1000 || args[0] < -1000) ? '*' : '_';
+                const bold = (args[0] > 1000 || args[0] < -1000) ? '*' : '_';
                 if(args[0] > 0) {
                     args[0] = `+${args[0]}`;
                 }
@@ -123,7 +123,7 @@ class Slack extends Transport {
             case 'userlink':
                 return this._slackLink(this._link(args[0]), args[0].split(':')[1]);
             case 'summary':
-                let a = args[0].trim().replace(/\\n/g, '');
+                const a = args[0].trim().replace(/\n/g, '');
                 return (a.length === 0) ? '' : `(_${this._escapeMrkdwn(a)}_)`;
             case 'debug':
                 return `\`\`\`${args[0]}\`\`\``;

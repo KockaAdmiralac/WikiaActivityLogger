@@ -3,7 +3,8 @@
 /**
  * Importing modules
  */
-const io = require('./io.js');
+const io = require('./io.js'),
+      util = require('./util.js');
 
 /**
  * Constants
@@ -28,7 +29,7 @@ class Wiki {
         if(typeof name !== 'string' || typeof config !== 'object') {
             this._error('`name` or `config` parameter invalid');
         }
-        this.name = name;
+        this._name = name;
         this._hook('initStart');
         this._initConfig(config, lang);
         this._cache = cache || {
@@ -36,6 +37,7 @@ class Wiki {
         };
         io.jar = jar;
         this._initStrings();
+        this.sources = (this.config.fetch || ['rc', 'log']).map(this._dispatchFetcher.bind(this));
         this._fetchInfo();
     }
     /**
@@ -70,9 +72,9 @@ class Wiki {
      * @private
      */
     _initTransport() {
-        let t = this.config.transport;
+        const t = this.config.transport;
         if(typeof t === 'object' && typeof t.platform === 'string') {
-            let Transport = require(`../transports/${t.platform}/index.js`);
+            const Transport = require(`../transports/${t.platform}/index.js`);
             this.transport = new Transport(t, this.info, this.strings);
         } else {
             this._error('Transport configuration invalid!');
@@ -84,15 +86,14 @@ class Wiki {
      * @private
      */
     _initSources() {
-        let fetchSources = this.config.fetch || ['rc', 'log'];
-        this.fetch = fetchSources.map(this._dispatchFetcher.bind(this));
-        if(this.fetch.indexOf(this._fetchAbuseLog) !== -1 && this.info.userinfo.rights.indexOf('abusefilter-log') === -1) {
+        if(util.includes(this.sources, 'abuselog') && this.info.userinfo.rights.indexOf('abusefilter-log') === -1) {
             // The user does not have permissions to view
             // the abuse log (isn't logged in) or the wiki
             // doesn't have AbuseFilter enabled
             this._error('Failed to initialize abuse log listener!');
-            this.fetch = this.fetch.filter(f => f !== this._fetchAbuseLog);
+            util.remove(this.sources, 'abuselog');
         }
+        this._processQS = this.sources.map(f => this[`_${f}QS`]);
     }
     /**
      * Calls a controller hook
@@ -125,7 +126,7 @@ class Wiki {
      * @return {Promise} Promise to listen for response on
      */
     _api(action, data, transform) {
-        return io.api(this.name, action, data, transform);
+        return io.api(this._name, action, data, transform);
     }
     /**
      * Links to a thread
@@ -137,10 +138,10 @@ class Wiki {
      */
     _thread(page) {
         if(typeof this._cache.threads === 'object') {
-            let split = page.split('/'),
-                threadPage = `${split[0]}/${split[1]}`;
+            const split = page.split('/'),
+                  threadPage = `${split[0]}/${split[1]}`;
             if(typeof this._cache.threads[threadPage] === 'object') {
-                let thread = this._cache.threads[threadPage];
+                const thread = this._cache.threads[threadPage];
                 // TODO: Temporary bugfix, I've no idea why is this happening
                 thread[0] = `Thread:${thread[0].replace(/Thread:/g, '')}`;
                 return thread;
@@ -165,11 +166,12 @@ class Wiki {
             rvlimit: 1,
             rvprop: 'content'
         }).then((function(d) {
-            for(let i in d.query.pages) {
-                if(d.query.pages.hasOwnProperty(i)) {
-                    this._cache.threads[page] = [i, /<ac_metadata\s*title="([^"]+)\s*[^>]*>\s*<\/ac_metadata>/g.exec(d.query.pages[i].revisions[0]['*'])[1]];
+            util.each(d.pages, function(k, v) {
+                const revs = v.revisions;
+                if(revs instanceof Array && revs.length > 0) {
+                    this._cache.threads[page] = [k, /<ac_metadata\s*title="([^"]+)\s*[^>]*>\s*<\/ac_metadata>/g.exec(revs[0]['*'])[1]];
                 }
-            }
+            }, this);
         }).bind(this)).catch(error => this._error(error));
     }
     /**
@@ -181,8 +183,7 @@ class Wiki {
      * @return {String} Named board
      */
     _board(page, ns) {
-        let split = page.split(':')[1].split('/')[0];
-        return [ns, split];
+        return [ns, page.split(':')[1].split('/')[0]];
     }
     /**
      * Fetches information about the wiki from the API
@@ -190,12 +191,26 @@ class Wiki {
      * @private
      */
     _fetchInfo() {
+        const siprop = ['general', 'statistics', 'rightsinfo', 'skins', 'category', 'wikidesc', 'namespaces'],
+              uiprop = ['blockinfo', 'rights', 'groups', 'changeablegroups', 'options', 'preferencestoken', 'editcount', 'ratelimits', 'registrationdate'];
         this._api('query', {
             meta: 'siteinfo|userinfo',
-            siprop: 'general|statistics|rightsinfo|skins|category|wikidesc|namespaces',
-            uiprop: 'blockinfo|rights|groups|changeablegroups|options|preferencestoken|editcount|ratelimits|registrationdate'
+            siprop: siprop.join('|'),
+            uiprop: uiprop.join('|'),
+            list: this.sources.join('|')
         }).then((function(d) {
-            this.info = d.query;
+            this.info = {};
+            siprop.forEach((el => this.info[el] = d[el]), this);
+            this.info.userinfo = d.userinfo;
+            if(d.recentchanges instanceof Array && d.recentchanges.length > 0) {
+                this._rcend = d.recentchanges[0].timestamp;
+            }
+            if(d.logevents instanceof Array && d.logevents.length > 0) {
+                this._leend = d.logevents[0].timestamp;
+            }
+            if(d.abuselog instanceof Array && d.abuselog.length > 0) {
+                this._aflend = d.abuselog[0].timestamp;
+            }
             this._initTransport();
             this._initSources();
             this._initInterval();
@@ -214,8 +229,8 @@ class Wiki {
             wkfrom: wkfrom,
             wkto: MAX_WKTO
         }).then((function(d) {
-            if(d.query.wkdomains.count > 0) {
-                this._initNewwikis(wkfrom + Number(d.query.wkdomains.count));
+            if(d.wkdomains.count > 0) {
+                this._initNewwikis(wkfrom + Number(d.wkdomains.count));
             } else {
                 this._cache.wkfrom = wkfrom;
                 this._newwikisInitialized = true;
@@ -229,140 +244,136 @@ class Wiki {
      * @private
      */
     _initInterval() {
-        this._tempFetchedInitial = 0;
-        this.fetch.forEach(function(el) {
-            el.call(this)
-                .then((function() {
-                    if(++this._tempFetchedInitial === this.fetch.length) {
-                        this._hook('initInterval');
-                        if(this.config.welcome) {
-                            this.transport.send(['start', process.env.npm_package_name, process.env.npm_package_version]);
-                        }
-                        this.interval = setInterval(this._update.bind(this), (this.config.interval || 500));
-                    }
-                }).bind(this))
-                .catch(error => this._error(error));
-        }, this);
+        this._hook('initInterval');
+        if(this.config.welcome) {
+            this.transport.send(['start', process.env.npm_package_name, process.env.npm_package_version]);
+        }
+        this.interval = setInterval(this._update.bind(this), (this.config.interval || 500));
     }
     /**
-     * Fetches RecentChanges information
-     * @method _fetchRC
+     * Processes the query string for recent changes fetcher
+     * @method _recentchangesQS
      * @private
-     * @return {Promise} Promise to listen for response on
+     * @return {Object} Object with query string parameters
      */
-    _fetchRC() {
-        let options = {
-            list: 'recentchanges',
+    _recentchangesQS() {
+        const options = {
             rcprop: 'user|title|ids|timestamp|comment|flags|tags|loginfo|sizes',
             rcshow: '!bot',
-            rclimit: 500
+            rclimit: 500,
+            rcend: this._rcend
         };
-        if(typeof this.rcend === 'string') {
-            options.rcend = this.rcend;
-        }
         if(typeof this.config.excludeuser === 'string') {
             options.rcexcludeuser = this.config.excludeuser;
         }
-        return this._api('query', options, (function(data) {
-            if(typeof data.query && data.query.recentchanges instanceof Array) {
-                let rc = data.query.recentchanges,
-                    rcdate = new Date(this.rcend);
-                if(typeof this.rcend === 'string') {
-                    rc = rc.filter((el => new Date(el.timestamp) > rcdate && this.bots.indexOf(el.user) === -1), this);
-                }
-                this.rcend = data.query.recentchanges[0].timestamp;
-                return rc;
-            } else {
-                this._error('Recent changes data not valid');
-            }
-        }).bind(this));
+        return options;
     }
     /**
-     * Fetches Log information
-     * @method _fetchLog
+     * Processes the query string for log events fetcher
+     * @method _logeventsQS
      * @private
-     * @return {Promise} Promise to listen for response on
+     * @return {Object} Object with query string parameters
      */
-    _fetchLog() {
-        let options = {
-            list: 'logevents',
+    _logeventsQS() {
+        const options = {
             leprop: 'ids|title|type|user|timestamp|comment|details|tags',
-            lelimit: 500
+            lelimit: 500,
+            leend: this._leend
         };
-        if(typeof this.leend === 'string') {
-            options.leend = this.leend;
-        }
         if(this.config.logs instanceof Array) {
             options.letype = this.config.logs.join('|');
         }
-        return this._api('query', options, (function(data) {
-            if(data.query && data.query.logevents instanceof Array) {
-                let log = data.query.logevents,
-                    logdate = new Date(this.leend);
-                if(typeof this.leend === 'string') {
-                    log = log.filter((el => new Date(el.timestamp) > logdate && this.bots.indexOf(el.user) === -1), this);
-                }
-                this.leend = data.query.logevents[0].timestamp;
-                return log;
-            } else {
-                this._error('Log data not valid');
-            }
-        }).bind(this));
+        return options;
     }
     /**
-     * Fetches abuse Log information
-     * @method _fetchLog
+     * Processes the query string for abuse log fetcher
+     * @method _abuselogQS
      * @private
-     * @return {Promise} Promise to listen for response on
+     * @return {Object} Object with query string parameters
      */
-    _fetchAbuseLog() {
-        let options = {
-            list: 'abuselog',
+    _abuselogQS() {
+        return {
             aflprop: 'filter|user|title|action|result|timestamp|ids',
-            afllimit: 500
+            afllimit: 500,
+            aflend: this._aflend
         };
-        if(typeof this.aflend === 'string') {
-            options.aflend = this.aflend;
-        }
-        return this._api('query', options, (function(data) {
-            if(data.query && data.query.abuselog instanceof Array) {
-                let log = data.query.abuselog,
-                    logdate = new Date(this.aflend);
-                if(typeof this.aflend === 'string') {
-                    log = log.filter((el => new Date(el.timestamp) > logdate && this.excludefilter.indexOf(Number(el.filter_id)) === -1), this);
-                }
-                this.aflend = data.query.abuselog[0].timestamp;
-                return log;
-            } else {
-                this._error('Invalid abuse log data');
-            }
-        }).bind(this));
     }
     /**
-     * Fetches new wiki information
-     * @method _fetchNewwikis
+     * Processes the query string for new wikis fetcher
+     * @method _wkdomainsQS
      * @private
-     * @return {Promise} Promise to listen for response on
+     * @return {Object} Object with query string parameters
      */
-    _fetchNewwikis() {
-        return this._api('query', {
-            list: 'wkdomains',
+    _wkdomainsQS() {
+        return this._newwikisInitialized ? {
             wkfrom: this._cache.wkfrom || MAX_WKTO,
             wkto: MAX_WKTO
-        }, (function(data) {
-            if(!this._newwikisInitialized) {
-                // TODO: This isn't optimal for bandwidth
-                return [];
-            }
-            let obj = data.query.wkdomains, arr = [];
-            for(let i in obj) {
-                if(obj.hasOwnProperty(i)) {
-                    ++this._cache.wkfrom;
-                    arr.push(obj[i]);
-                }
-            }
-            return arr.filter((el) => !(/qatestwiki/.test(el.domain)));
-        }).bind(this));
+        } : {
+            wkfrom: 0,
+            wkto: 0
+        };
+    }
+    /**
+     * Processes data from recent changes
+     * @method _fetchRC
+     * @private
+     * @param {Array} data Unprocessed data from API
+     * @return {Array} Array of processed events
+     */
+    _recentchangesProcess(data) {
+        data = data.filter((el => new Date(el.timestamp) > new Date(this._rcend) && !util.includes(this.bots, el.user)), this);
+        if(data.length > 0) {
+            this._rcend = data[0].timestamp;
+        }
+        return data;
+    }
+    /**
+     * Processes data from log
+     * @method _logeventsProcess
+     * @private
+     * @param {Array} data Unprocessed data from API
+     * @return {Array} Array of processed events
+     */
+    _logeventsProcess(data) {
+        data = data.filter((el => new Date(el.timestamp) > new Date(this._leend) && !util.includes(this.bots, el.user)), this);
+        if(data.length > 0) {
+            this._leend = data[0].timestamp;
+        }
+        return data;
+    }
+    /**
+     * Processes data from abuse log
+     * @method _abuselogProcess
+     * @private
+     * @param {Array} data Unprocessed data from API
+     * @return {Array} Array of processed events
+     */
+    _abuselogProcess(data) {
+        data = data.filter((el => new Date(el.timestamp) > new Date(this._aflend) && !util.includes(this.excludefilter, Number(el.filter_id))), this);
+        data.forEach(el => el.type = 'abuse log');
+        if(data.length > 0) {
+            this._aflend = data[0].timestamp;
+        }
+        return data;
+    }
+    /**
+     * Processes data from new wiki log
+     * @method _wkdomainsProcess
+     * @private
+     * @param {Array} data Unprocessed data from API
+     * @return {Array} Array of processed events
+     */
+    _wkdomainsProcess(data) {
+        if(!this._newwikisInitialized) {
+            return [];
+        }
+        const arr = [];
+        util.each(data, function(k, v) {
+            ++this._cache.wkfrom;
+            v.type = 'new wiki';
+            arr.push(v);
+        }, this);
+        return arr.filter((el) => !(/qatestwiki/.test(el.domain)));
     }
     /**
      * Returns the fetcher method based on the configuration option
@@ -375,16 +386,19 @@ class Wiki {
         switch(type) {
             case 'rc':
             case 'recent changes':
-                return this._fetchRC;
+            case 'recentchanges':
+                return 'recentchanges';
             case 'log':
-                return this._fetchLog;
+            case 'logevents':
+                return 'logevents';
             case 'abuselog':
             case 'al':
             case 'abuse log':
-                return this._fetchAbuseLog;
+                return 'abuselog';
             case 'newwikis':
+            case 'wkdomains':
                 this._initNewwikis();
-                return this._fetchNewwikis;
+                return 'wkdomains';
         }
     }
     /**
@@ -393,20 +407,23 @@ class Wiki {
      * @private
      */
     _update() {
-        this.fetch.forEach(function(el) {
-            el.call(this)
-                .then(function(data) {
-                    if(data.length > 0) {
-                        data.forEach(function(entry) {
-                            let result = this._handle(entry);
-                            if(result instanceof Array) {
-                                this.transport.send(result);
+        const qs = { list: this.sources.join('|') };
+        this._processQS.forEach(el => util.merge(qs, el.call(this)), this);
+        this._api('query', qs, null).then((function(d) {
+            this.sources.forEach(function(el) {
+                if(d[el]) {
+                    const data = this[`_${el}Process`].call(this, d[el]);
+                    if(data instanceof Array && data.length > 0) {
+                        data.forEach(function(e) {
+                            const handle = this._handle(e);
+                            if(handle instanceof Array) {
+                                this.transport.send(handle);
                             }
                         }, this);
                     }
-                }.bind(this))
-                .catch(error => this._error(error));
-        }, this);
+                }
+            }, this);
+        }).bind(this)).catch(error => this._error(error));
     }
     /**
      * Handles RC, log, abuse log etc. entry data
@@ -417,14 +434,6 @@ class Wiki {
      */
     _handle(info) {
         switch(info.type) {
-            case undefined:
-                if(typeof info.filter_id === 'number') {
-                    // This is an abuse log
-                    return ['abuselog', info.user, info.filter_id, info.filter, info.action, info.title, this.strings[`action-${info.result}`]];
-                } else if(typeof info.domain === 'string') {
-                    return ['newwikis', info.domain];
-                }
-                break;
             case 'new':
                 // Not a log
                 return (info.ns === 1201 || info.ns === 2001) ?
@@ -525,6 +534,10 @@ class Wiki {
                 }
                 break;
             case 'renameuser': return ['renameuser', info.user, info.comment];
+            // These aren't actual types, they are inserted manually
+            // so we don't have to rely on them being undefined
+            case 'new wiki': return ['newwikis', info.domain];
+            case 'abuse log': return ['abuselog', info.user, info.filter_id, info.filter, info.action, info.title, this.strings[`action-${info.result}`]];
             // Cases to handle:
             // suppress - Suppresses something? Idk
             // editaccnt - This is used when accounts get disabled iirc
@@ -551,6 +564,13 @@ class Wiki {
      */
     get cache() {
         return this._cache;
+    }
+    /**
+     * Get name
+     * @return {String} Name
+     */
+    get name() {
+        return this._name;
     }
 }
 
