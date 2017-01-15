@@ -106,9 +106,9 @@ class IO {
         return IO._request((method || 'GET'), `http://${wiki}.wikia.com/api.php`, options, function(data) {
             if(data.error) {
                 const err = data.error;
-                console.error(`MediaWiki API error: ${err.code}: ${err.info}`);
+                main.hook('error', `MediaWiki API error: ${err.code}: ${err.info}`, 'IO', 'api');
             } else if (typeof data[action] === 'undefined') {
-                console.error('MediaWiki API returned no data!');
+                main.hook('error', 'MediaWiki API returned no data!', 'IO', 'api');
             } else if(typeof transform === 'function') {
                 return transform.call(this, data[action]);
             } else {
