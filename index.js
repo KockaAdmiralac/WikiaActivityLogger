@@ -8,7 +8,7 @@
  * Importing modules
  */
 const Logger = require('./main.js'),
-    Controller = require('./controllers/cli/index.js');
+      Controller = require('./controllers/cli/index.js');
 
 /**
  * Bot controller

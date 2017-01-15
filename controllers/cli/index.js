@@ -26,7 +26,7 @@ class CLI extends Controller {
         	output: process.stdout
         });
         this.running = true;
-        let env = process.env;
+        const env = process.env;
         console.info(`
             =====
             Welcome to ${env.npm_package_name} v${env.npm_package_version}!
@@ -42,8 +42,8 @@ class CLI extends Controller {
     _readLine() {
         this._read.question('> ', (function(command) {
             if(typeof command === 'string' && command.trim().length > 0) {
-                let split = command.trim().split(' '),
-                    comm = split.splice(0, 1)[0];
+                const split = command.trim().split(' '),
+                      comm = split.splice(0, 1)[0];
                 this._processCommand(comm, split);
             }
             this._readLine();
@@ -58,7 +58,7 @@ class CLI extends Controller {
      */
     _processCommand(command, args) {
         if(command[0] === '#') {
-            let wiki = this._log.wikis.filter(wiki => wiki.name === command.substring(1))[0];
+            const wiki = this._log.wikis.filter(wiki => wiki.name === command.substring(1))[0];
             if(wiki) {
                 switch(args[0]) {
                     case 'destroy':
@@ -98,7 +98,7 @@ class CLI extends Controller {
                     this._log.initialize();
                     break;
                 case 'info':
-                    let env = process.env;
+                    const env = process.env;
                     console.info(`
                         == Package info
                         ${env.npm_package_name} v${env.npm_package_version}
@@ -171,10 +171,10 @@ class CLI extends Controller {
      * @param {Array} args Array of arguments
      */
     _eventWiki() {
-        let args = Array.prototype.slice.call(arguments),
-            spliced = args.splice(0, 2),
-            wiki = spliced[0],
-            e = spliced[1];
+        const args = Array.prototype.slice.call(arguments),
+              spliced = args.splice(0, 2),
+              wiki = spliced[0],
+              e = spliced[1];
         switch(e) {
             case 'error':
                 console.error(`[${wiki.name}]\n${args[0]}`);

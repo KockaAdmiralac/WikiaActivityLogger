@@ -72,9 +72,9 @@ class Wiki {
      * @private
      */
     _initTransport() {
-        let t = this.config.transport;
+        const t = this.config.transport;
         if(typeof t === 'object' && typeof t.platform === 'string') {
-            let Transport = require(`../transports/${t.platform}/index.js`);
+            const Transport = require(`../transports/${t.platform}/index.js`);
             this.transport = new Transport(t, this.info, this.strings);
         } else {
             this._error('Transport configuration invalid!');
@@ -138,10 +138,10 @@ class Wiki {
      */
     _thread(page) {
         if(typeof this._cache.threads === 'object') {
-            let split = page.split('/'),
-                threadPage = `${split[0]}/${split[1]}`;
+            const split = page.split('/'),
+                  threadPage = `${split[0]}/${split[1]}`;
             if(typeof this._cache.threads[threadPage] === 'object') {
-                let thread = this._cache.threads[threadPage];
+                const thread = this._cache.threads[threadPage];
                 // TODO: Temporary bugfix, I've no idea why is this happening
                 thread[0] = `Thread:${thread[0].replace(/Thread:/g, '')}`;
                 return thread;
@@ -183,8 +183,7 @@ class Wiki {
      * @return {String} Named board
      */
     _board(page, ns) {
-        let split = page.split(':')[1].split('/')[0];
-        return [ns, split];
+        return [ns, page.split(':')[1].split('/')[0]];
     }
     /**
      * Fetches information about the wiki from the API

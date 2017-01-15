@@ -77,7 +77,6 @@ class Util {
      * @param {String} msg Message format, parameters use dollar annotation
      * @param {Array<String>} args Array with parameters
      * @return {String} Formatted message
-     * @throws {Error} If one of the parameters isn't a string
      */
     static format(msg, args) {
         if(!(args instanceof Array) || typeof msg !== 'string') {

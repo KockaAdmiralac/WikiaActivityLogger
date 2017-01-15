@@ -7,8 +7,7 @@
 /**
  * Importing utility modules
  */
-const io = require('../includes/io.js'), // jshint ignore: line
-      util = require('../includes/util.js');
+const util = require('../includes/util.js');
 
 /**
  * Base class for other transports
@@ -22,11 +21,10 @@ class Transport {
      * @param {String} info Information about the wiki
      * @param {String} modul Module name
      * @param {Object} strings Strings data
-     * @throws {Error} If improperly called
      */
     constructor(config, info, modul, strings) {
         if(typeof config !== 'object' || typeof info !== 'object' || typeof modul !== 'string') {
-            throw new Error(`Constructor parameters incorrectly supplied! (${modul || 'Transport'}.constructor)`);
+            main.hook('error', 'Constructor parameters incorrectly supplied!', (modul || 'Transport'), 'constructor');
         }
         this.modul = modul;
         this.info = info;
@@ -38,11 +36,10 @@ class Transport {
      * through a transport.
      * @method send
      * @param {String} message The message to send
-     * @throws {Error} If not implemented through subclasses
      */
     send(message) { // jshint ignore: line
         main.hook('error', '`send` method not implemented!', this.modul, 'prototype.send');
-        throw new Error('`send` method not implemented!');
+        return;
     }
     /**
      * Shorthand for util.format with some validation
@@ -56,7 +53,7 @@ class Transport {
             main.hook('error', 'Given arguments aren\'t an array', this.modal, 'prototype._formatMessage');
             return;
         }
-        let msg = this.strings[args.splice(0, 1)[0]];
+        const msg = this.strings[args.splice(0, 1)[0]];
         if(typeof msg !== 'string') {
             main.hook('error', 'Given message isn\'t a string', this.modul, 'prototype._formatMessage');
             return;
@@ -68,10 +65,9 @@ class Transport {
      * @method preprocess
      * @param {String} arg
      * @return {String} Preprocessed argument
-     * @throws {Error} If not implemented through subclasses
      */
     preprocess(arg) { // jshint ignore: line
-        main.hook('error', '`preprocess` method not implemented!', this.modul, 'prototype.send');
+        main.hook('error', '`preprocess` method not implemented!', this.modul, 'prototype.preprocess');
         return;
     }
     /**
@@ -83,7 +79,7 @@ class Transport {
      */
     parse(message) {
         return message.replace(/\\}/g, '').replace(/{{([^\}]*)}}/g, (function(_, template) {
-            let args = template.split('|');
+            const args = template.split('|');
             return this.template(args.splice(0, 1)[0], args);
         }).bind(this));
     }
@@ -96,11 +92,7 @@ class Transport {
      * @return {String} Parsed template
      */
     template(name, args) { // jshint ignore: line
-        switch(name) {
-            case 'diff':
-            case 'link':
-                break;
-        }
+        main.hook('error', '`template` method not implemented!', this.modul, 'prototype.template');
     }
 }
 

@@ -83,7 +83,7 @@ class Logger {
      */
     _initWikis() {
         this._wikis = [];
-        let wikis = this._config.wikis;
+        const wikis = this._config.wikis;
     	if(typeof wikis !== 'object') {
     		main.hook('noWikis');
     	}
@@ -111,7 +111,7 @@ class Logger {
      * @private
      */
     _initAccount() {
-        let acc = this._config.account;
+        const acc = this._config.account;
     	if(acc.password) {
     		this._login(acc);
     	} else {
@@ -130,7 +130,7 @@ class Logger {
      * @private
      */
     _login(info) {
-    	let options = {
+    	const options = {
     		lgname: info.username,
     		lgpassword: info.password
     	};

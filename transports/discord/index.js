@@ -44,7 +44,7 @@ class Discord extends Transport {
         if(this.rateLimit) {
             this.queue.push(message);
         } else {
-            let format = this._formatMessage(message);
+            const format = this._formatMessage(message);
             if(typeof format !== 'string') {
                 // An error occurred while parsing
                 return;
@@ -120,7 +120,7 @@ class Discord extends Transport {
      * @return {String} Link to the page
      */
     _link(page) {
-        let general = this.info.general;
+        const general = this.info.general;
         return util.linkToArticle(general.server, general.articlepath, page);
     }
     /**
@@ -145,10 +145,10 @@ class Discord extends Transport {
     template(name, args) {
         switch(name) {
             case 'diff':
-                let general = this.info.general;
+                const general = this.info.general;
                 return `(${this._mdLink(util.linkToDiff(general.server, general.scriptpath, args[0]), this.strings.diff)})`;
             case 'diffSize':
-                let bold = '*'.repeat((args[0] > 1000 || args[0] < -1000) ? 2 : 1);
+                const bold = '*'.repeat((args[0] > 1000 || args[0] < -1000) ? 2 : 1);
                 if(args[0] > 0) {
                     args[0] = `+${args[0]}`;
                 }
@@ -160,7 +160,7 @@ class Discord extends Transport {
             case 'userlink':
                 return this._mdLink(this._link(args[0]), args[0].split(':')[1]);
             case 'summary':
-                let a = args[0].trim().replace(/\n/g, '');
+                const a = args[0].trim().replace(/\n/g, '');
                 return (a.length === 0) ? '' : `(*${this._dirtyEscapeLink(this._escapeMarkdown(a))}*)`;
             case 'debug':
                 return `\`\`\`${args[0]}\`\`\``;

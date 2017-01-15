@@ -61,7 +61,6 @@ class IO {
                 jar: IO.jar
             };
         options[body ? 'body' : 'qs'] = data;
-        //options[(method === 'GET') ? 'qs' : 'body'] = data;
         if(transform) {
             options.transform = transform;
         }
@@ -106,7 +105,7 @@ class IO {
         options.format = 'json';
         return IO._request((method || 'GET'), `http://${wiki}.wikia.com/api.php`, options, function(data) {
             if(data.error) {
-                let err = data.error;
+                const err = data.error;
                 console.error(`MediaWiki API error: ${err.code}: ${err.info}`);
             } else if (typeof data[action] === 'undefined') {
                 console.error('MediaWiki API returned no data!');
