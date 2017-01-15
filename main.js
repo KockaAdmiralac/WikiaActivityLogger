@@ -9,7 +9,8 @@
  */
 const Wiki = require('./includes/wiki.js'),
       io = require('./includes/io.js'),
-      fs = require('fs');
+      fs = require('fs'),
+      util = require('./includes/util.js');
 
 /**
  * Main class
@@ -49,8 +50,9 @@ class Logger {
      */
     _initCache() {
         try {
-            this._cache = JSON.parse(require('./cache.json'));
+            this._cache = require('./cache.json');
         } catch(e) {
+            main.hook('error', 'An error occurred while initializing cache. If this is your first time starting WikiaActivityLogger, ignore this error.', 'Logger', '_initCache');
             this._cache = { wikis: {} };
         }
         this._cacheInterval = setInterval(this._saveCache.bind(this), 5000); // TODO: Make interval configurable?
@@ -65,9 +67,9 @@ class Logger {
             if(!(this._wikis instanceof Array)) {
                 return;
             }
-            let wikiCache = this._wikis.map(wiki => wiki.cache);
-            if(this._cache && wikiCache) {
-                this._cache.wikis = wikiCache;
+            this._cache.wikis = {};
+            this._wikis.forEach(el => this._cache.wikis[el.name] = el.cache);
+            if(this._cache && this._cache.wikis) {
                 fs.writeFileSync('./cache.json', JSON.stringify(this._cache));
             }
         } catch(e) {
@@ -85,11 +87,7 @@ class Logger {
     	if(typeof wikis !== 'object') {
     		main.hook('noWikis');
     	}
-    	for(let i in wikis) {
-    		if(wikis.hasOwnProperty(i)) {
-    			this._wikis.push(new Wiki(i, wikis[i], (this._config.language || 'en'), this._cookieJar, this._cache.wikis[i]));
-    		}
-    	}
+        util.each(wikis, (k, v) => this._wikis.push(new Wiki(k, v, (this._config.language || 'en'), this._cookieJar, this._cache.wikis[k])), this);
     }
     /**
      * Adds a wiki to array of wikis
@@ -141,9 +139,9 @@ class Logger {
     	}
     	info.domain = info.domain || 'community';
     	io.api(info.domain, 'login', options, undefined, 'POST').then((function(data) {
-    		switch(data.login.result) {
+    		switch(data.result) {
     			case 'NeedToken':
-    				info.token = data.login.token;
+    				info.token = data.token;
     				this._login(info);
     				break;
     			case 'WrongToken':
@@ -172,7 +170,7 @@ class Logger {
                     main.hook('error', `The user account you attempted to log into is blocked on ${info.domain}.wikia.com! You can change the login domain with the 'domain' parameter.`, 'Logger', '_login');
                     break;
     			case 'Aborted':
-                    main.hook('error', `Logging in was aborted by an extension hook! Reason: ${data.login.reason ? data.login.reason : 'unknown'}`);
+                    main.hook('error', `Logging in was aborted by an extension hook! Reason: ${data.reason ? data.reason : 'unknown'}`);
                     break;
                 case 'Success':
     				main.hook('login');

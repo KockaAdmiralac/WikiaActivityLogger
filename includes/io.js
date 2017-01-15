@@ -20,7 +20,7 @@ class IO {
      * @throws {Error} when called
      */
     constructor() {
-        throw new Error('This is a static class! (IO.constructor)');
+        main.hook('error', 'This is a static class!', 'IO', 'constructor');
     }
     /**
      * Makes a new cookie jar
@@ -42,7 +42,7 @@ class IO {
      * @return {Promise} Promise on which to listen for response
      */
     static _request(method, url, data, transform, body) {
-        let lol = [
+        const lol = [
                 'socket.io sucks',
                 'Brandon is a witch',
                 'This user agent string is random',
@@ -52,14 +52,14 @@ class IO {
                 'Cubes aren\'t Illuminati'
             ],
             options = {
-            headers: {
-                'User-Agent': `${process.env.npm_package_name} v${process.env.npm_package_version} (${process.env.npm_package_homepage}) [Did you know? ${lol[Math.floor(Math.random() * lol.length)]}]`
-            },
-            method: method,
-            uri: url,
-            json: true,
-            jar: IO.jar
-        };
+                headers: {
+                    'User-Agent': `${process.env.npm_package_name} v${process.env.npm_package_version} (${process.env.npm_package_homepage}) [Did you know? ${lol[Math.floor(Math.random() * lol.length)]}]`
+                },
+                method: method,
+                uri: url,
+                json: true,
+                jar: IO.jar
+            };
         options[body ? 'body' : 'qs'] = data;
         //options[(method === 'GET') ? 'qs' : 'body'] = data;
         if(transform) {
@@ -94,11 +94,13 @@ class IO {
      * @param {String} action Action to use
      * @param {Object} options Other data to supply
      * @param {Function} transform How to transform the data when receieved
+     * @param {String} method Method to use when communicating with the API.
+     *                        Set to GET by default
      * @return {Promise} Promise on which to listen for response
      */
     static api(wiki, action, options, transform, method) {
         if(typeof action !== 'string') {
-            throw new Error('`action` parameter invalid (IO.api)');
+            main.hook('error', '`action` parameter invalid', 'IO', 'api');
         }
         options.action = action;
         options.format = 'json';
@@ -109,9 +111,9 @@ class IO {
             } else if (typeof data[action] === 'undefined') {
                 console.error('MediaWiki API returned no data!');
             } else if(typeof transform === 'function') {
-                return transform.call(this, data);
+                return transform.call(this, data[action]);
             } else {
-                return data;
+                return data[action];
             }
         });
     }

@@ -123,7 +123,7 @@ class Slack extends Transport {
             case 'userlink':
                 return this._slackLink(this._link(args[0]), args[0].split(':')[1]);
             case 'summary':
-                let a = args[0].trim().replace(/\\n/g, '');
+                let a = args[0].trim().replace(/\n/g, '');
                 return (a.length === 0) ? '' : `(_${this._escapeMrkdwn(a)}_)`;
             case 'debug':
                 return `\`\`\`${args[0]}\`\`\``;
