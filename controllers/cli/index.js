@@ -126,10 +126,6 @@ class CLI extends Controller {
                     console.info('Shutting down process...');
                     process.exit();
                     break;
-                case 'crash':
-                    console.warn('If that\'s what you want...');
-                    process.crash();
-                    break;
                 case 'restart':
                 case 'reboot':
                 case 'reload':
