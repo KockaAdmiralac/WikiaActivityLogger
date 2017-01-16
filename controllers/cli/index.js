@@ -7,7 +7,17 @@
 /**
  * Importing modules
  */
-const Controller = require('../controller.js');
+const Controller = require('../controller.js'),
+      util = require('../../includes/util.js');
+
+/**
+ * Colors used in console methods
+ */
+const COLORS = {
+    warn: 33,
+    error: 31,
+    info: 36
+};
 
 /**
  * Main class for the CLI controller
@@ -25,14 +35,18 @@ class CLI extends Controller {
         	input: process.stdin,
         	output: process.stdout
         });
+        util.each(COLORS, function(k, v) {
+            const alias = console[k];
+            console[k] = text => alias.call(console, `\x1b[${v}m${text}\x1b[0m`);
+        }, this);
         this.running = true;
         const env = process.env;
-        console.info(`
+        this._info(`
             =====
             Welcome to ${env.npm_package_name} v${env.npm_package_version}!
             Documentation can be found at ${env.npm_package_homepage}
             =====
-        `.replace(/( |\t)( |\t)+/g, ''));
+        `);
     }
     /**
      * Reads a line from the console
@@ -50,6 +64,16 @@ class CLI extends Controller {
         }).bind(this));
     }
     /**
+     * Prints a string with console.info but removing all tabs
+     * and spaces on the beginning of rows
+     * @method _info
+     * @private
+     * @param {String} str String to print
+     */
+    _info(str) {
+        console.info(str.replace(/( |\t)( |\t)+/g, ''));
+    }
+    /**
      * Processes CLI message
      * @method _processCommand
      * @static
@@ -61,6 +85,22 @@ class CLI extends Controller {
             const wiki = this._log.wikis.filter(wiki => wiki.name === command.substring(1))[0];
             if(wiki) {
                 switch(args[0]) {
+                    case 'info':
+                        const i = wiki.info,
+                              g = i.general,
+                              s = i.statistics;
+                        this._info(`
+                            == Wiki info
+                            Name: ${g.sitename}
+                            ID: ${i.wikidesc.id}
+                            Domain: ${g.server}
+                            Language: ${i.languages.filter(el => el.code === g.lang)[0]['*']}
+                            Pages: ${s.pages}
+                            Articles: ${s.articles}
+                            Revisions: ${s.edits}
+                            Active users: ${s.activeusers}
+                        `);
+                        break;
                     case 'destroy':
                     case 'close':
                     case 'exit':
@@ -83,23 +123,23 @@ class CLI extends Controller {
                 case 'shutdown':
                 case 'quit':
                 case '>:O':
-                    console.log('Shutting down process...');
+                    console.info('Shutting down process...');
                     process.exit();
                     break;
                 case 'crash':
-                    console.log('If that\'s what you want...');
+                    console.warn('If that\'s what you want...');
                     process.crash();
                     break;
                 case 'restart':
                 case 'reboot':
                 case 'reload':
-                    console.log('Restarting...');
+                    console.info('Restarting...');
                     this._log.destroy();
                     this._log.initialize();
                     break;
                 case 'info':
                     const env = process.env;
-                    console.info(`
+                    this._info(`
                         == Package info
                         ${env.npm_package_name} v${env.npm_package_version}
                         Description: ${env.npm_package_description}
@@ -109,11 +149,19 @@ class CLI extends Controller {
                         == Running info
                         Currently watched wikis: ${this._log.wikis.map(wiki => wiki.name).join(', ')}
                         Account: ${this._log.account || 'Not logged in'}
-                    `.replace(/( |\t)( |\t)+/g, ''));
+                    `);
                     break;
                 default: this._eventError('No such command found!', 'CLI', '_processCommand');
             }
         }
+    }
+    _eventUpdateAvailable(version) {
+        this._info(`
+            \x1b[31m*** UPDATE AVAIALABLE ***\x1b[0m
+            An update of ${process.env.npm_package_name} to version ${version} available!
+            Please read the documentation for instructions on how to update
+            to the next version.
+        `);
     }
     /**
      * Event called when an error occurs
@@ -150,7 +198,7 @@ class CLI extends Controller {
      * @private
      */
     _eventLogin() {
-        console.log('Successfully logged in! Initializing wiki listeners...');
+        console.info('Successfully logged in! Initializing wiki listeners...');
         this._readLine();
     }
     /**
