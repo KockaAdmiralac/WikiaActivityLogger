@@ -75,7 +75,7 @@ class Wiki {
         const t = this.config.transport;
         if(typeof t === 'object' && typeof t.platform === 'string') {
             const Transport = require(`../transports/${t.platform}/index.js`);
-            this.transport = new Transport(t, this.info, this.strings);
+            this.transport = new Transport(t, this._info, this.strings);
         } else {
             this._error('Transport configuration invalid!');
         }
@@ -86,7 +86,7 @@ class Wiki {
      * @private
      */
     _initSources() {
-        if(util.includes(this.sources, 'abuselog') && this.info.userinfo.rights.indexOf('abusefilter-log') === -1) {
+        if(util.includes(this.sources, 'abuselog') && this._info.userinfo.rights.indexOf('abusefilter-log') === -1) {
             // The user does not have permissions to view
             // the abuse log (isn't logged in) or the wiki
             // doesn't have AbuseFilter enabled
@@ -191,7 +191,7 @@ class Wiki {
      * @private
      */
     _fetchInfo() {
-        const siprop = ['general', 'statistics', 'rightsinfo', 'skins', 'category', 'wikidesc', 'namespaces'],
+        const siprop = ['general', 'statistics', 'rightsinfo', 'skins', 'category', 'wikidesc', 'namespaces', 'languages'],
               uiprop = ['blockinfo', 'rights', 'groups', 'changeablegroups', 'options', 'preferencestoken', 'editcount', 'ratelimits', 'registrationdate'];
         this._api('query', {
             meta: 'siteinfo|userinfo',
@@ -199,9 +199,9 @@ class Wiki {
             uiprop: uiprop.join('|'),
             list: this.sources.join('|')
         }).then((function(d) {
-            this.info = {};
-            siprop.forEach((el => this.info[el] = d[el]), this);
-            this.info.userinfo = d.userinfo;
+            this._info = {};
+            siprop.forEach((el => this._info[el] = d[el]), this);
+            this._info.userinfo = d.userinfo;
             if(d.recentchanges instanceof Array && d.recentchanges.length > 0) {
                 this._rcend = d.recentchanges[0].timestamp;
             }
@@ -571,6 +571,13 @@ class Wiki {
      */
     get name() {
         return this._name;
+    }
+    /**
+     * Get wiki information
+     * @return {Object} Wiki information
+     */
+    get info() {
+        return this._info;
     }
 }
 

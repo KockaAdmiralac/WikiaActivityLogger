@@ -13,6 +13,12 @@ const Wiki = require('./includes/wiki.js'),
       util = require('./includes/util.js');
 
 /**
+ * URL from which to fetch the master branch package.json
+ * for checking the version in update process
+ */
+const UPDATE_URL = 'https://raw.githubusercontent.com/KockaAdmiralac/WikiaActivityLogger/master/package.json';
+
+/**
  * Main class
  * @class Logger
  */
@@ -25,11 +31,7 @@ class Logger {
         this._initConfig();
         this._initCache();
         io.makeJar();
-    	if(this._config.account && this._config.account.username) {
-    		this._initAccount();
-    	} else {
-    		this._initWikis();
-    	}
+        this._checkForUpdates();
     }
     /**
      * Initializes the program configuration
@@ -77,6 +79,25 @@ class Logger {
         }
     }
     /**
+     * Checks for updates to WikiaActivityLogger
+     * @method _checkForUpdates
+     * @private
+     */
+    _checkForUpdates() {
+        if(this._config.no_updates) {
+            this._initAccount();
+        } else {
+            io.get(UPDATE_URL)
+                .then((function(d) {
+                    if(d.version !== process.env.npm_package_version) {
+                        main.hook('updateAvailable', d.version);
+                    }
+                    this._initAccount();
+                }).bind(this))
+                .catch(error => main.hook('throw', error));
+        }
+    }
+    /**
      * Initializes information about wikis
      * @method _initWikis
      * @private
@@ -111,18 +132,22 @@ class Logger {
      * @private
      */
     _initAccount() {
-        const acc = this._config.account;
-    	if(acc.password) {
-    		this._login(acc);
-    	} else {
-            main.hook('enterPassword', acc.username, function(password) {
-    			this._login({
-    				username: acc.username,
-    				password: password,
-    				domain: acc.domain
-    			});
-    		});
-    	}
+        if(this._config.account && this._config.account.username) {
+            const acc = this._config.account;
+        	if(acc.password) {
+        		this._login(acc);
+        	} else {
+                main.hook('enterPassword', acc.username, function(password) {
+        			this._login({
+        				username: acc.username,
+        				password: password,
+        				domain: acc.domain
+        			});
+        		});
+        	}
+        } else {
+            this._initWikis();
+        }
     }
     /**
      * Logs in through the API
