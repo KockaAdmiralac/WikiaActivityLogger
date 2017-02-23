@@ -1,6 +1,6 @@
 {
     "name": "wikia-activity-logger",
-    "version": "1.5.1",
+    "version": "1.5.2",
     "description": "Logs activity of a Wikia wiki through different transports",
     "keywords": [
         "wikia",
@@ -26,6 +26,10 @@
         {
             "name": "Dark Yada",
             "url": "http://c.wikia.com/wiki/User:Dark_Yada"
+        },
+        {
+            "name": "Mix Gerder",
+            "url": "http://c.wikia.com/wiki/User:Mix_Gerder"
         }
     ],
     "main": "index.js",
