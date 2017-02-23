@@ -1,13 +1,13 @@
 {
     "name": "wikia-activity-logger",
-    "version": "1.5.0",
+    "version": "1.5.1",
     "description": "Logs activity of a Wikia wiki through different transports",
     "keywords": [
         "wikia",
         "logger",
         "discord"
     ],
-    "homepage": "http://kocka.wikia.com/wiki/WikiaActivityLogger",
+    "homepage": "http://dev.wikia.com/wiki/WikiaActivityLogger",
     "license": "CC-BY-SA-4.0",
     "author": {
         "name": "KockaAdmiralac",
