@@ -82,7 +82,8 @@ class Discord extends Transport {
         return String(arg)
             .replace(/\{/g, '\\{')
             .replace(/\}/g, '\\}')
-            .replace(/\|/g, 'I'); // ehhh
+            .replace(/\|/g, 'I') // ehhh
+            .replace(/\@/, '＠'); // really shouldnt need to do this
     }
     /**
      * Replaces a P in http:// or https:// with a Cyrillic R
