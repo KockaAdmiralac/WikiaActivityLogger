@@ -10,7 +10,7 @@
 const io = require('../../includes/io.js'),
       util = require('../../includes/util.js'),
       Transport = require('../transport.js');
-      
+
 /**
  * Transport class
  * @class Discord
@@ -86,8 +86,8 @@ class Discord extends Transport {
             .replace(/\@(?!comment)/g, '@​') // prevent @everyone and @here
             .replace(/discord\.gg/g, 'discord.gg​'); // zero-width space
 
-            // Strip markdown
-            str = str
+        // Strip markdown
+        str = str
             .replace(/_{1,2}([^_*]+)_{1,2}/g, '$1')
             .replace(/\*{1,2}([^_*]+)\*{1,2}/g, '$1')
             .replace(/\r?\n|\r/g, '​');

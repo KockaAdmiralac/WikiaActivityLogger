@@ -1,54 +1,54 @@
 {
-  "name": "wikia-activity-logger",
-  "version": "1.5.5",
-  "description": "Logs activity of a Wikia wiki through different transports",
-  "keywords": [
-    "wikia",
-    "logger",
-    "discord"
-  ],
-  "homepage": "http://dev.wikia.com/wiki/WikiaActivityLogger",
-  "license": "CC-BY-SA-4.0",
-  "author": {
-    "name": "KockaAdmiralac",
-    "email": "1405223@gmail.com",
-    "url": "https://github.com/KockaAdmiralac"
-  },
-  "contributors": [
-    {
-      "name": "Unai Mengual",
-      "url": "https://unai01.github.io"
+    "name": "wikia-activity-logger",
+    "version": "1.5.5",
+    "description": "Logs activity of a Wikia wiki through different transports",
+    "keywords": [
+        "wikia",
+        "logger",
+        "discord"
+    ],
+    "homepage": "http://dev.wikia.com/wiki/WikiaActivityLogger",
+    "license": "CC-BY-SA-4.0",
+    "author": {
+        "name": "KockaAdmiralac",
+        "email": "1405223@gmail.com",
+        "url": "https://github.com/KockaAdmiralac"
     },
-    {
-      "name": "Mamvik",
-      "url": "http://c.wikia.com/wiki/User:Mamvik"
+    "contributors": [
+        {
+            "name": "Unai Mengual",
+            "url": "https://unai01.github.io"
+        },
+        {
+            "name": "Mamvik",
+            "url": "http://c.wikia.com/wiki/User:Mamvik"
+        },
+        {
+            "name": "Dark Yada",
+            "url": "http://c.wikia.com/wiki/User:Dark_Yada"
+        },
+        {
+            "name": "Mix Gerder",
+            "url": "http://c.wikia.com/wiki/User:Mix_Gerder"
+        },
+        {
+            "name": "Ava Caughdough",
+            "url": "http://dabpenguin.com"
+        }
+    ],
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js"
     },
-    {
-      "name": "Dark Yada",
-      "url": "http://c.wikia.com/wiki/User:Dark_Yada"
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/KockaAdmiralac/WikiaActivityLogger.git"
     },
-    {
-      "name": "Mix Gerder",
-      "url": "http://c.wikia.com/wiki/User:Mix_Gerder"
+    "dependencies": {
+        "request": "^2.34",
+        "request-promise-native": ">=1.0.0"
     },
-    {
-      "name": "Ava Caughdough",
-      "url": "http://dabpenguin.com"
+    "engines": {
+        "node": ">=0.12.0"
     }
-  ],
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/KockaAdmiralac/WikiaActivityLogger.git"
-  },
-  "dependencies": {
-    "request": "^2.34",
-    "request-promise-native": ">=1.0.0"
-  },
-  "engines": {
-    "node": ">=0.12.0"
-  }
 }
