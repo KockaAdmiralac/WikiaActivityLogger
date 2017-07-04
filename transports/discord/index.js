@@ -10,7 +10,7 @@
 const io = require('../../includes/io.js'),
       util = require('../../includes/util.js'),
       Transport = require('../transport.js');
-
+      
 /**
  * Transport class
  * @class Discord
@@ -79,12 +79,20 @@ class Discord extends Transport {
      * @throws {Error} If not implemented through subclasses
      */
     preprocess(arg) {
-        return String(arg)
+        let str = String(arg)
             .replace(/\{/g, '\\{')
             .replace(/\}/g, '\\}')
             .replace(/\|/g, 'I') // ehhh
-            .replace(/\@(?!comment)/, '@​') // prevent @everyone and @here
+            .replace(/\@(?!comment)/g, '@​') // prevent @everyone and @here
             .replace(/discord\.gg/g, 'discord.gg​'); // zero-width space
+
+            // Strip markdown
+            str = str
+            .replace(/_{1,2}([^_*]+)_{1,2}/g, '$1')
+            .replace(/\*{1,2}([^_*]+)\*{1,2}/g, '$1')
+            .replace(/\r?\n|\r/g, '​');
+
+        return str;
     }
     /**
      * Replaces a P in http:// or https:// with a Cyrillic R

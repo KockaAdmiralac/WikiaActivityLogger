@@ -1,50 +1,50 @@
 {
-    "name": "wikia-activity-logger",
-    "version": "1.5.4",
-    "description": "Logs activity of a Wikia wiki through different transports",
-    "keywords": [
-        "wikia",
-        "logger",
-        "discord"
-    ],
-    "homepage": "http://dev.wikia.com/wiki/WikiaActivityLogger",
-    "license": "CC-BY-SA-4.0",
-    "author": {
-        "name": "KockaAdmiralac",
-        "email": "1405223@gmail.com",
-        "url": "https://github.com/KockaAdmiralac"
+  "name": "wikia-activity-logger",
+  "version": "1.5.5",
+  "description": "Logs activity of a Wikia wiki through different transports",
+  "keywords": [
+    "wikia",
+    "logger",
+    "discord"
+  ],
+  "homepage": "http://dev.wikia.com/wiki/WikiaActivityLogger",
+  "license": "CC-BY-SA-4.0",
+  "author": {
+    "name": "KockaAdmiralac",
+    "email": "1405223@gmail.com",
+    "url": "https://github.com/KockaAdmiralac"
+  },
+  "contributors": [
+    {
+      "name": "Unai Mengual",
+      "url": "https://unai01.github.io"
     },
-    "contributors": [
-        {
-            "name": "Unai Mengual",
-            "url": "https://unai01.github.io"
-        },
-        {
-            "name": "Mamvik",
-            "url": "http://c.wikia.com/wiki/User:Mamvik"
-        },
-        {
-            "name": "Dark Yada",
-            "url": "http://c.wikia.com/wiki/User:Dark_Yada"
-        },
-        {
-            "name": "Mix Gerder",
-            "url": "http://c.wikia.com/wiki/User:Mix_Gerder"
-        }
-    ],
-    "main": "index.js",
-    "scripts": {
-        "start": "node index.js"
+    {
+      "name": "Mamvik",
+      "url": "http://c.wikia.com/wiki/User:Mamvik"
     },
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/KockaAdmiralac/WikiaActivityLogger.git"
+    {
+      "name": "Dark Yada",
+      "url": "http://c.wikia.com/wiki/User:Dark_Yada"
     },
-    "dependencies": {
-        "request-promise-native": ">=1.0.0",
-        "request": "^2.34"
-    },
-    "engines": {
-        "node": ">=0.12.0"
+    {
+      "name": "Mix Gerder",
+      "url": "http://c.wikia.com/wiki/User:Mix_Gerder"
     }
+  ],
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KockaAdmiralac/WikiaActivityLogger.git"
+  },
+  "dependencies": {
+    "request": "^2.34",
+    "request-promise-native": ">=1.0.0"
+  },
+  "engines": {
+    "node": ">=0.12.0"
+  }
 }
