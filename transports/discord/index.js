@@ -162,7 +162,7 @@ class Discord extends Transport {
             case 'userlink':
                 return this._mdLink(this._link(args[0]), args[0].split(':')[1]);
             case 'summary':
-                const a = args[0].trim().replace(/\n/g, '');
+                const a = args[0].trim();
                 return (a.length === 0) ? '' : `(*${this._escapeLink(this._escapeMarkdown(a))}*)`;
             case 'debug':
                 return `\`\`\`${args[0]}\`\`\``;
