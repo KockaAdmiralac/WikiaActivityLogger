@@ -1,6 +1,6 @@
 {
     "name": "wikia-activity-logger",
-    "version": "1.5.4",
+    "version": "1.5.5",
     "description": "Logs activity of a Wikia wiki through different transports",
     "keywords": [
         "wikia",
@@ -30,6 +30,10 @@
         {
             "name": "Mix Gerder",
             "url": "http://c.wikia.com/wiki/User:Mix_Gerder"
+        },
+        {
+            "name": "Ava Caughdough",
+            "url": "http://dabpenguin.com"
         }
     ],
     "main": "index.js",
@@ -41,8 +45,8 @@
         "url": "https://github.com/KockaAdmiralac/WikiaActivityLogger.git"
     },
     "dependencies": {
-        "request-promise-native": ">=1.0.0",
-        "request": "^2.34"
+        "request": "^2.34",
+        "request-promise-native": ">=1.0.0"
     },
     "engines": {
         "node": ">=0.12.0"

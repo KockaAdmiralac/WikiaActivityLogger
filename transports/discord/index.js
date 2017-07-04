@@ -82,24 +82,21 @@ class Discord extends Transport {
         return String(arg)
             .replace(/\{/g, '\\{')
             .replace(/\}/g, '\\}')
-            .replace(/\|/g, 'I') // ehhh
-            .replace(/\@(?!comment)/, '@​') // prevent @everyone and @here
-            .replace(/discord\.gg/g, 'discord.gg​'); // zero-width space
+            .replace(/\|/g, 'I'); // ehhh
     }
     /**
-     * Replaces a P in http:// or https:// with a Cyrillic R
+     * Breaks HTTP using zero-width spaces
      * This is so Discord doesn't generate previews but the
      * link displays rather normally
-     * @method _dirtyEscapeLink
+     * @method _escapeLink
      * @private
      * @param {String} link Link to escape
      * @return {String} Escaped link
-     * @todo boi, this is DIRTY
      */
-    _dirtyEscapeLink(link) {
+    _escapeLink(link) {
         return link
-            .replace(/http:\/\//g, 'httр://')
-            .replace(/https:\/\//g, 'httрs://');
+            .replace(/http:\/\//g, 'http://​')
+            .replace(/https:\/\//g, 'https://​');
     }
     /**
      * Escapes markdown syntax
@@ -111,8 +108,11 @@ class Discord extends Transport {
      */
     _escapeMarkdown(message) {
         return message
-            .replace(/\*/g, '\\*');
-            // TODO
+            .replace(/\@/g, '@​') // prevent @everyone and @here
+            .replace(/discord\.gg/g, 'discord.gg​') // zero-width space
+            .replace(/_{1,2}([^_*]+)_{1,2}/g, '$1')
+            .replace(/\*{1,2}([^_*]+)\*{1,2}/g, '$1')
+            .replace(/\r?\n|\r/g, '​');
     }
     /**
      * Shorthand for util.linkToArticle
@@ -134,7 +134,7 @@ class Discord extends Transport {
      * @return {String} Markdown-formatted masked link
      */
     _mdLink(link, text) {
-        return `[${text}](<${link.replace(/\)/g, '%29')}>)`;
+        return `[${this._escapeMarkdown(text)}](<${link.replace(/\)/g, '%29')}>)`;
     }
     /**
      * Parses a {{template}}
@@ -162,8 +162,8 @@ class Discord extends Transport {
             case 'userlink':
                 return this._mdLink(this._link(args[0]), args[0].split(':')[1]);
             case 'summary':
-                const a = args[0].trim().replace(/\n/g, '');
-                return (a.length === 0) ? '' : `(*${this._dirtyEscapeLink(this._escapeMarkdown(a))}*)`;
+                const a = args[0].trim();
+                return (a.length === 0) ? '' : `(*${this._escapeLink(this._escapeMarkdown(a))}*)`;
             case 'debug':
                 return `\`\`\`${args[0]}\`\`\``;
             case 'wiki':
