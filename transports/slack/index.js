@@ -59,7 +59,7 @@ class Slack extends Transport {
             .replace(/\{/g, '\\{')
             .replace(/\}/g, '\\}')
             .replace(/\|/g, 'I') // ehhh
-            .replace(/\@(?!comment)/, '＠'); // prevent @everyone and @here
+            .replace(/\@(?!comment)/, '@​'); // prevent @everyone and @here
     }
     /**
      * Escapes mrkdwn syntax

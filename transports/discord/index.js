@@ -83,7 +83,8 @@ class Discord extends Transport {
             .replace(/\{/g, '\\{')
             .replace(/\}/g, '\\}')
             .replace(/\|/g, 'I') // ehhh
-            .replace(/\@(?!comment)/, '＠'); // prevent @everyone and @here
+            .replace(/\@(?!comment)/, '@​') // prevent @everyone and @here
+            .replace(/discord\.gg/g, 'discord.gg​'); // zero-width space
     }
     /**
      * Replaces a P in http:// or https:// with a Cyrillic R
