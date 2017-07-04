@@ -134,7 +134,7 @@ class Discord extends Transport {
      * @return {String} Markdown-formatted masked link
      */
     _mdLink(link, text) {
-        return `[${_escapeMarkdown(text)}](<${link.replace(/\)/g, '%29')}>)`;
+        return `[${this._escapeMarkdown(text)}](<${link.replace(/\)/g, '%29')}>)`;
     }
     /**
      * Parses a {{template}}
