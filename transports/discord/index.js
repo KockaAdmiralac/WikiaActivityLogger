@@ -99,31 +99,6 @@ class Discord extends Transport {
             .replace(/https:\/\//g, 'https:/​/');
     }
     /**
-     * Decodes HTML entities
-     * @param {String} text text to decode
-     * @return {String} decoded text
-     */
-    _decodeHTMLEntities(text) {
-        const entities = [
-            ['amp', '&'],
-            ['apos', '\''],
-            ['#39', '\''],
-            ['#x27', '\''],
-            ['#x2F', '/'],
-            ['#39', '\''],
-            ['#47', '/'],
-            ['lt', '<'],
-            ['gt', '>'],
-            ['nbsp', ' '],
-            ['quot', '"']
-        ];
-
-        for (var i = 0, max = entities.length; i < max; ++i) 
-            text = text.replace(new RegExp(`&entities[i][0];`, 'g'), entities[i][1]);
-
-        return text;
-    }
-    /**
      * Escapes markdown syntax
      * @method _escapeMarkdown
      * @private
@@ -132,7 +107,7 @@ class Discord extends Transport {
      * @todo Not finished yet
      */
     _escapeMarkdown(message) {
-        return this._decodeHTMLEntities(message)
+        return message
             .replace(/\@/g, '@​') // prevent @everyone and @here
             .replace(/discord\.gg/g, 'discord.gg​') // zero-width space
             .replace(/_{1,2}([^_*]+)_{1,2}/g, '$1')

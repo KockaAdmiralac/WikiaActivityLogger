@@ -154,6 +154,31 @@ class Wiki {
         return [page, this.strings.message];
     }
     /**
+     * Decodes HTML entities
+     * @param {String} text text to decode
+     * @return {String} decoded text
+     */
+    _decodeHTMLEntities(text) {
+        const entities = [
+            ['amp', '&'],
+            ['apos', '\''],
+            ['#39', '\''],
+            ['#x27', '\''],
+            ['#x2F', '/'],
+            ['#39', '\''],
+            ['#47', '/'],
+            ['lt', '<'],
+            ['gt', '>'],
+            ['nbsp', ' '],
+            ['quot', '"']
+        ];
+
+        for (var i = 0, max = entities.length; i < max; ++i) 
+            text = text.replace(new RegExp(`&entities[i][0];`, 'g'), entities[i][1]);
+
+        return text;
+    }
+    /**
      * Caches a thread page
      * @method _cacheThread
      * @private
@@ -169,7 +194,7 @@ class Wiki {
             util.each(d.pages, function(k, v) {
                 const revs = v.revisions;
                 if(revs instanceof Array && revs.length > 0) {
-                    this._cache.threads[page] = [k, /<ac_metadata\s*title="([^"]+)\s*[^>]*>\s*<\/ac_metadata>/g.exec(revs[0]['*'])[1]];
+                    this._cache.threads[page] = [k, this._decodeHTMLEntities(/<ac_metadata\s*title="([^"]+)\s*[^>]*>\s*<\/ac_metadata>/g.exec(revs[0]['*'])[1])];
                 }
             }, this);
         }).bind(this)).catch(error => this._error(error));
