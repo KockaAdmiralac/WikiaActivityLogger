@@ -119,7 +119,7 @@ class Discord extends Transport {
         ];
 
         for (var i = 0, max = entities.length; i < max; ++i) 
-            text = text.replace(new RegExp('&'+entities[i][0]+';', 'g'), entities[i][1]);
+            text = text.replace(new RegExp(`&entities[i][0];`, 'g'), entities[i][1]);
 
         return text;
     }
