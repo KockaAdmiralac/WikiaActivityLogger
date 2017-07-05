@@ -79,7 +79,6 @@ class Discord extends Transport {
      * @throws {Error} If not implemented through subclasses
      */
     preprocess(arg) {
-        console.log( String( arg ) );
         return String(arg)
             .replace(/\{/g, '\\{')
             .replace(/\}/g, '\\}')
@@ -108,7 +107,6 @@ class Discord extends Transport {
      * @todo Not finished yet
      */
     _escapeMarkdown(message) {
-        console.log( message );
         return message
             .replace(/\@/g, '@​') // prevent @everyone and @here
             .replace(/discord\.gg/g, 'discord.gg​') // zero-width space
