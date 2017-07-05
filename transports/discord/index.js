@@ -95,8 +95,8 @@ class Discord extends Transport {
      */
     _escapeLink(link) {
         return link
-            .replace(/http:\/\//g, 'http://​')
-            .replace(/https:\/\//g, 'https://​');
+            .replace(/http:\/\//g, 'http:/​/')
+            .replace(/https:\/\//g, 'https:/​/');
     }
     /**
      * Escapes markdown syntax
