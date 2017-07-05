@@ -137,7 +137,8 @@ class Discord extends Transport {
             .replace(/discord\.gg/g, 'discord.gg​') // zero-width space
             .replace(/_{1,2}([^_*]+)_{1,2}/g, '$1')
             .replace(/\*{1,2}([^_*]+)\*{1,2}/g, '$1')
-            .replace(/\r?\n|\r/g, '​');
+            .replace(/\r?\n|\r/g, '​')
+            .replace(/<acmetadata [^>]+>[^<]+<\/acmetadata>/g, '');
     }
     /**
      * Shorthand for util.linkToArticle
