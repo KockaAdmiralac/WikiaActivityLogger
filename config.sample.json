@@ -2,9 +2,7 @@
 	"wikis": {
 		"communitytest": {
 			"transport": {
-				"platform": "discord",
-				"id": "123456789",
-				"token": "aosBaAodia-oIA9DAkasd-9jASdlkAdu-7Askanadki-IASd8Asnak"
+				"platform": "notifications"
 			}
 		}
 	}
