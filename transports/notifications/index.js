@@ -27,7 +27,6 @@ class Notifications extends Transport {
 
     constructor(data, info, strings) {
         super(data, info, 'Notifications', strings);
-        this.config = data;
     };
 
     /**
@@ -40,8 +39,8 @@ class Notifications extends Transport {
         const format = this._formatMessage(message);
         var wikiname = this.config.name || this.info.general.sitename;
         notifier.notify({
-            'title': `WikiaActivityLogger - ${wikiname}`,
-            'message': this.parse(format),
+            title: `WikiaActivityLogger - ${wikiname}`,
+            message: this.parse(format),
             wait: true
         });
         if (this.diff) {
