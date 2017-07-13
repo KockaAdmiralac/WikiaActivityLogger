@@ -27,7 +27,7 @@ class Notifications extends Transport {
 
     constructor(data, info, strings) {
         super(data, info, 'Notifications', strings);
-    };
+    }
 
     /**
      * Bot calls this method when it wants to send a message
@@ -36,8 +36,8 @@ class Notifications extends Transport {
      * @param {String} message Message to send
      */
     send(message) {
-        const format = this._formatMessage(message);
-        var wikiname = this.config.name || this.info.general.sitename;
+        const format = this._formatMessage(message),
+        wikiname = this.config.name || this.info.general.sitename;
         notifier.notify({
             title: `WikiaActivityLogger - ${wikiname}`,
             message: this.parse(format),
