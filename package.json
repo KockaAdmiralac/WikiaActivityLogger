@@ -35,6 +35,10 @@
         {
             "name": "Ava Caughdough",
             "url": "http://dabpenguin.com"
+        },
+        { 
+            "name": "Nozomi",
+            "url": "http://c.wikia.com/wiki/User:ElNobDeTfm"
         }
     ],
     "main": "index.js",
