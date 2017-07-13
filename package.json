@@ -47,6 +47,7 @@
     },
     "dependencies": {
         "node-notifier": "^5.1.2",
+        "opn": "^5.1.0",
         "request": "^2.34",
         "request-promise-native": ">=1.0.0"
     },
