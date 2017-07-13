@@ -2,3 +2,5 @@ config.json
 node_modules
 cache.json
 npm-debug.log
+package-lock.json
+yarn.lock
