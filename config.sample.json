@@ -1,0 +1,9 @@
+{
+	"wikis": {
+		"communitytest": {
+			"transport": {
+				"platform": "notifications"
+			}
+		}
+	}
+}
