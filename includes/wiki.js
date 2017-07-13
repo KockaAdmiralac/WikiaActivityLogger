@@ -267,8 +267,8 @@ class Wiki {
             options.rcexcludeuser = this.config.excludeuser;
         }
         if(this.config.namespaces instanceof Array) {
-	    options.rcnamespace = this.config.namespaces.join('|'); 
-	}
+            options.rcnamespace = this.config.namespaces.join('|');
+        }
         return options;
     }
     /**
