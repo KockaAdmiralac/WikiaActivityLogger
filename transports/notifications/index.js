@@ -45,9 +45,7 @@ class Notifications extends Transport {
         });
         if (this.diff) {
             let diffLink = `${this.info.general.server}/?diff=${this.diff}`;
-            notifier.on('click', (notifierObject, options) => {
-                opn(diffLink);
-            });
+            notifier.on('click', (notifierObject, options) => opn(diffLink));
             this.diff = null;
         }
     }
@@ -63,7 +61,7 @@ class Notifications extends Transport {
         return String(arg)
             .replace(/\{/g, '\\{')
             .replace(/\}/g, '\\}')
-            .replace(/\|/g, 'I')
+            .replace(/\|/g, 'I');
     }
 
     /**
