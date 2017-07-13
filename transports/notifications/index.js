@@ -8,12 +8,12 @@
  * Importing modules
  */
 const io = require('../../includes/io.js'),
-	util = require('../../includes/util.js'),
-	Transport = require('../transport.js'),
-	notifier = require('node-notifier'),
-	opn = require('opn');
-let    config,
-       diff;
+    util = require('../../includes/util.js'),
+    Transport = require('../transport.js'),
+    notifier = require('node-notifier'),
+    opn = require('opn');
+let config,
+    diff;
 
 
 /**
@@ -32,28 +32,28 @@ class Notifications extends Transport {
         config = data;
     };
 
-	/**
-	 * Bot calls this method when it wants to send a message
-	 * through a transport.
-	 * @method send
-	 * @param {String} message Message to send
-	 */
-	send(message) {
-		const format = this._formatMessage(message);
-		var wikiname = config.name || this.info.general.sitename;
-		notifier.notify({
-			'title': `WikiaActivityLogger - ${wikiname}`,
-			'message': this.parse(format),
-			wait: true
-		});
-		if (diff) {
-			let diffLink = `${this.info.general.server}/?diff=${diff}`;
-			notifier.on('click', (notifierObject, options) => {
-  				opn(diffLink);
-			});
-			diff = null;
-		}
-	}
+    /**
+     * Bot calls this method when it wants to send a message
+     * through a transport.
+     * @method send
+     * @param {String} message Message to send
+     */
+    send(message) {
+        const format = this._formatMessage(message);
+        var wikiname = config.name || this.info.general.sitename;
+        notifier.notify({
+            'title': `WikiaActivityLogger - ${wikiname}`,
+            'message': this.parse(format),
+            wait: true
+        });
+        if (diff) {
+            let diffLink = `${this.info.general.server}/?diff=${diff}`;
+            notifier.on('click', (notifierObject, options) => {
+                opn(diffLink);
+            });
+            diff = null;
+        }
+    }
 
     /**
      * Preprocesses the argument passed to the template
@@ -90,7 +90,7 @@ class Notifications extends Transport {
      * @return {String} Parsed template
      */
     template(name, args) {
-        switch(name) {
+        switch (name) {
             case 'diff':
                 const general = this.info.general;
                 diff = args[0];
