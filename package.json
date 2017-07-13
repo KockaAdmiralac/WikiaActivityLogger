@@ -1,11 +1,12 @@
 {
     "name": "wikia-activity-logger",
-    "version": "1.5.7",
+    "version": "1.5.8",
     "description": "Logs activity of a Wikia wiki through different transports",
     "keywords": [
         "wikia",
         "logger",
-        "discord"
+        "discord",
+        "slack"
     ],
     "homepage": "http://dev.wikia.com/wiki/WikiaActivityLogger",
     "license": "CC-BY-SA-4.0",
@@ -45,6 +46,8 @@
         "url": "https://github.com/KockaAdmiralac/WikiaActivityLogger.git"
     },
     "dependencies": {
+        "node-notifier": "^5.1.2",
+        "opn": "^5.1.0",
         "request": "^2.34",
         "request-promise-native": ">=1.0.0"
     },
