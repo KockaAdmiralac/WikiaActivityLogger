@@ -1,5 +1,5 @@
 # WikiaActivityLogger
-A simple tool built in [Node.js](https://nodejs.org) for logging activity of a [Wikia](http://community.wikia.com) wiki through several transports (currently only supported transports are [Discord](https://discordapp.com) and [Slack](https://slack.com)).
+A simple tool built in [Node.js](https://nodejs.org) for logging activity of a [Wikia](http://community.wikia.com) wiki through several transports (currently only supported transports are [Discord](https://discordapp.com), desktop notifications and [Slack](https://slack.com)).
 
 Documentation can be found [here](http://dev.wikia.com/wiki/WikiaActivityLogger)
 
