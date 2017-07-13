@@ -87,7 +87,6 @@ class Notifications extends Transport {
     template(name, args) {
         switch (name) {
             case 'diff':
-                const general = this.info.general;
                 this.diff = args[0];
                 return '';
             case 'diffSize':
