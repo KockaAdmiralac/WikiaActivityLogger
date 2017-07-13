@@ -37,7 +37,7 @@ class Notifications extends Transport {
      */
     send(message) {
         const format = this._formatMessage(message),
-        wikiname = this.config.name || this.info.general.sitename;
+              wikiname = this.config.name || this.info.general.sitename;
         notifier.notify({
             title: `WikiaActivityLogger - ${wikiname}`,
             message: this.parse(format),
