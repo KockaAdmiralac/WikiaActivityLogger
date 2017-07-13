@@ -12,8 +12,6 @@ const io = require('../../includes/io.js'),
     Transport = require('../transport.js'),
     notifier = require('node-notifier'),
     opn = require('opn');
-let config,
-    diff;
 
 
 /**
@@ -29,7 +27,7 @@ class Notifications extends Transport {
 
     constructor(data, info, strings) {
         super(data, info, 'Notifications', strings);
-        config = data;
+        this.config = data;
     };
 
     /**
@@ -40,18 +38,18 @@ class Notifications extends Transport {
      */
     send(message) {
         const format = this._formatMessage(message);
-        var wikiname = config.name || this.info.general.sitename;
+        var wikiname = this.config.name || this.info.general.sitename;
         notifier.notify({
             'title': `WikiaActivityLogger - ${wikiname}`,
             'message': this.parse(format),
             wait: true
         });
-        if (diff) {
-            let diffLink = `${this.info.general.server}/?diff=${diff}`;
+        if (this.diff) {
+            let diffLink = `${this.info.general.server}/?diff=${this.diff}`;
             notifier.on('click', (notifierObject, options) => {
                 opn(diffLink);
             });
-            diff = null;
+            this.diff = null;
         }
     }
 
@@ -94,16 +92,13 @@ class Notifications extends Transport {
             case 'diff':
                 const general = this.info.general;
                 diff = args[0];
-                console.log(diff);
                 return '';
             case 'diffSize':
                 return `(${args[0]})`;
             case 'user':
-                return `${args[0]}`;
             case 'link':
-                return `${args[0]}`;
             case 'userlink':
-                return `${args[0]}`;
+                return args[0];
             case 'summary':
                 const a = args[0].trim().replace(/\n/g, '');
                 return (a.length === 0) ? '' : `(${a})`;
