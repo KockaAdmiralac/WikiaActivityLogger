@@ -12,8 +12,8 @@ const io = require('../../includes/io.js'),
 	Transport = require('../transport.js'),
 	notifier = require('node-notifier'),
 	opn = require('opn');
-var config,
-	diff;
+let    config,
+       diff;
 
 
 /**
@@ -47,8 +47,8 @@ class Notifications extends Transport {
 			wait: true
 		});
 		if (diff) {
-			var diffLink = `${this.info.general.server}/?diff=${diff}`;
-			notifier.on('click', function (notifierObject, options) {
+			let diffLink = `${this.info.general.server}/?diff=${diff}`;
+			notifier.on('click', (notifierObject, options) => {
   				opn(diffLink);
 			});
 			diff = null;
