@@ -8,8 +8,8 @@
  * Importing modules
  */
 const Controller = require('../controller.js'),
-      util = require('../../includes/util.js');
-
+      util = require('../../includes/util.js'),
+      packageJSON = require('../../package.json');
 /**
  * Colors used in console methods
  */
@@ -43,8 +43,8 @@ class CLI extends Controller {
         const env = process.env;
         this._info(`
             =====
-            Welcome to ${env.npm_package_name} v${env.npm_package_version}!
-            Documentation can be found at ${env.npm_package_homepage}
+            Welcome to ${packageJSON.name} v${packageJSON.version}!
+            Documentation can be found at ${packageJSON.homepage}
             =====
         `);
     }
