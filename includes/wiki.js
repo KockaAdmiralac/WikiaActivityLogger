@@ -5,7 +5,7 @@
  */
 const io = require('./io.js'),
       util = require('./util.js'),
-      package = require('./../package.json');
+      packageJson = require('./../package.json');
 
 /**
  * Constants
@@ -247,7 +247,7 @@ class Wiki {
     _initInterval() {
         this._hook('initInterval');
         if(this.config.welcome) {
-            this.transport.send(['start', package.name, package.version]);
+            this.transport.send(['start', packageJson.name, packageJson.version]);
         }
         this.interval = setInterval(this._update.bind(this), (this.config.interval || 500));
     }
