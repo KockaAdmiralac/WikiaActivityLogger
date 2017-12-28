@@ -1,6 +1,6 @@
 {
     "name": "wikia-activity-logger",
-    "version": "1.5.9",
+    "version": "1.5.10",
     "description": "Logs activity of a Wikia wiki through different transports",
     "keywords": [
         "wikia",
@@ -36,9 +36,15 @@
             "name": "Ava Caughdough",
             "url": "http://dabpenguin.com"
         },
-        { 
+        {
             "name": "Nozomi",
             "url": "http://c.wikia.com/wiki/User:ElNobDeTfm"
+        },
+        {
+            "name": "Mobius-One",
+            "url": "https://github.com/Mobius-One",
+            "name": "Ultragustavo25",
+            "url": "http://c.wikia.com/wiki/User:Ultragustavo25"
         }
     ],
     "main": "index.js",
