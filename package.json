@@ -1,6 +1,6 @@
 {
     "name": "wikia-activity-logger",
-    "version": "1.5.10",
+    "version": "1.5.11",
     "description": "Logs activity of a Wikia wiki through different transports",
     "keywords": [
         "wikia",
@@ -47,6 +47,10 @@
         {
             "name": "Ultragustavo25",
             "url": "http://c.wikia.com/wiki/User:Ultragustavo25"
+        },
+        {
+            "name": "ChromeCircus",
+            "url": "http://c.wikia.com/wiki/User:ChromeCircus"
         }
     ],
     "main": "index.js",
