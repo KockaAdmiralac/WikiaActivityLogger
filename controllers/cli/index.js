@@ -40,7 +40,6 @@ class CLI extends Controller {
             console[k] = text => alias.call(console, `\x1b[${v}m${text}\x1b[0m`);
         }, this);
         this.running = true;
-        const env = process.env;
         this._info(`
             =====
             Welcome to ${packageJSON.name} v${packageJSON.version}!
@@ -134,7 +133,6 @@ class CLI extends Controller {
                     this._log.initialize();
                     break;
                 case 'info':
-                    const env = process.env;
                     this._info(`
                         == Package info
                         ${env.npm_package_name} v${env.npm_package_version}
