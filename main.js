@@ -10,8 +10,8 @@
 const Wiki = require('./includes/wiki.js'),
       io = require('./includes/io.js'),
       fs = require('fs'),
-      util = require('./includes/util.js');
-      packageJSON = require('package.json');
+      util = require('./includes/util.js'),
+      packageJSON = require('./package.json');
 
 /**
  * URL from which to fetch the master branch package.json
