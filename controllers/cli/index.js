@@ -139,7 +139,7 @@ class CLI extends Controller {
                         == Package info
                         ${packageJSON.name} v${packageJSON.version}
                         Description: ${packageJSON.description}
-                        Author: ${packageJSON.author_name}
+                        Author: ${packageJSON.author.name}
                         Homepage: ${packageJSON.homepage}
                         License: ${packageJSON.license}
                         == Running info
