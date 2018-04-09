@@ -22,7 +22,7 @@
     "reupload": "{{user|$1}} przesłał nowszą wersję {{link|$2}} {{summary|$3}}",
     "revupload": "{{user|$1}} wycofał przesłaną wersję pliku $2 {{summary|$3}}",
     "move": "{{user|$1}} przeniósł $2 do {{link|$3}} {{summary|$4}}",
-    "moveredir": "{user|$1}} przeniósł $2 do {{link|$3}} bez pozostawiania przekierowania {{summary|$4}}",
+    "moveredir": "{{user|$1}} przeniósł $2 do {{link|$3}} bez pozostawiania przekierowania {{summary|$4}}",
     "import": "{{user|$1}} zaimportował $2 {{summary|$3}}",
     "patrol": "{{user|$1}} oznaczył jako sprawdzoną wersję strony $2",
     "merge": "{{user|$1}} scalił historię $2 i {{link|$3}} {{summary|$4}}",
