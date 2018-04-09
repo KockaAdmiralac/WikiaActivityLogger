@@ -1,6 +1,6 @@
 {
     "name": "wikia-activity-logger",
-    "version": "1.5.11",
+    "version": "1.5.12",
     "description": "Logs activity of a Wikia wiki through different transports",
     "keywords": [
         "wikia",
@@ -51,6 +51,10 @@
         {
             "name": "ChromeCircus",
             "url": "http://c.wikia.com/wiki/User:ChromeCircus"
+        },
+        {
+            "name": "Railfail536",
+            "url": "http://pl.c.wikia.com/wiki/User:Railfail536"
         }
     ],
     "main": "index.js",
