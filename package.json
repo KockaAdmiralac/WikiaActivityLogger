@@ -8,7 +8,7 @@
         "discord",
         "slack"
     ],
-    "homepage": "http://dev.wikia.com/wiki/WikiaActivityLogger",
+    "homepage": "https://dev.wikia.com/wiki/WikiaActivityLogger",
     "license": "CC-BY-SA-4.0",
     "author": {
         "name": "KockaAdmiralac",
@@ -22,15 +22,15 @@
         },
         {
             "name": "Mamvik",
-            "url": "http://c.wikia.com/wiki/User:Mamvik"
+            "url": "https://c.wikia.com/wiki/User:Mamvik"
         },
         {
             "name": "Dark Yada",
-            "url": "http://c.wikia.com/wiki/User:Dark_Yada"
+            "url": "https://c.wikia.com/wiki/User:Dark_Yada"
         },
         {
             "name": "Mix Gerder",
-            "url": "http://c.wikia.com/wiki/User:Mix_Gerder"
+            "url": "https://c.wikia.com/wiki/User:Mix_Gerder"
         },
         {
             "name": "Ava Caughdough",
@@ -38,7 +38,7 @@
         },
         {
             "name": "Nozomi",
-            "url": "http://c.wikia.com/wiki/User:ElNobDeTfm"
+            "url": "https://c.wikia.com/wiki/User:ElNobDeTfm"
         },
         {
             "name": "Mobius-One",
@@ -46,19 +46,19 @@
         },
         {
             "name": "Ultragustavo25",
-            "url": "http://c.wikia.com/wiki/User:Ultragustavo25"
+            "url": "https://c.wikia.com/wiki/User:Ultragustavo25"
         },
         {
             "name": "ChromeCircus",
-            "url": "http://c.wikia.com/wiki/User:ChromeCircus"
+            "url": "https://c.wikia.com/wiki/User:ChromeCircus"
         },
         {
             "name": "Railfail536",
-            "url": "http://pl.c.wikia.com/wiki/User:Railfail536"
+            "url": "https://pl.c.wikia.com/wiki/User:Railfail536"
         },
         {
             "name": "Sophiedp",
-            "url": "http://c.wikia.com/wiki/User:Sophiedp"
+            "url": "https://c.wikia.com/wiki/User:Sophiedp"
         }
     ],
     "main": "index.js",
