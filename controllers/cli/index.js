@@ -137,11 +137,11 @@ class CLI extends Controller {
                     const env = process.env;
                     this._info(`
                         == Package info
-                        ${env.npm_package_name} v${env.npm_package_version}
-                        Description: ${env.npm_package_description}
-                        Author: ${env.npm_package_author_name}
-                        Homepage: ${env.npm_package_homepage}
-                        License: ${env.npm_package_license}
+                        ${packageJSON.name} v${packageJSON.version}
+                        Description: ${packageJSON.description}
+                        Author: ${packageJSON.author.name}
+                        Homepage: ${packageJSON.homepage}
+                        License: ${packageJSON.license}
                         == Running info
                         Currently watched wikis: ${this._log.wikis.map(wiki => wiki.name).join(', ')}
                         Account: ${this._log.account || 'Not logged in'}
@@ -154,7 +154,7 @@ class CLI extends Controller {
     _eventUpdateAvailable(version) {
         this._info(`
             \x1b[31m*** UPDATE AVAIALABLE ***\x1b[0m
-            An update of ${process.env.npm_package_name} to version ${version} available!
+            An update of ${packageJSON.name} to version ${version} available!
             Please read the documentation for instructions on how to update
             to the next version.
         `);
