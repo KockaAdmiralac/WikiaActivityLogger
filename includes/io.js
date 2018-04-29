@@ -7,7 +7,8 @@
 /**
  * Importing modules
  */
-const http = require('request-promise-native');
+const http = require('request-promise-native'),
+      packageJSON = require('../package.json');
 
 /**
  * Static class for handling HTTP requests
@@ -53,7 +54,7 @@ class IO {
             ],
             options = {
                 headers: {
-                    'User-Agent': `${process.env.npm_package_name} v${process.env.npm_package_version} (${process.env.npm_package_homepage}) [Did you know? ${lol[Math.floor(Math.random() * lol.length)]}]`
+                    'User-Agent': `${packageJSON.name} v${packageJSON.version} (${packageJSON.homepage}) [Did you know? ${lol[Math.floor(Math.random() * lol.length)]}]`
                 },
                 method: method,
                 uri: url,
