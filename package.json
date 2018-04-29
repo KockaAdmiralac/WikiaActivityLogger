@@ -1,6 +1,6 @@
 {
     "name": "wikia-activity-logger",
-    "version": "1.5.12",
+    "version": "1.5.13",
     "description": "Logs activity of a Wikia wiki through different transports",
     "keywords": [
         "wikia",
@@ -55,6 +55,10 @@
         {
             "name": "Railfail536",
             "url": "https://pl.c.wikia.com/wiki/User:Railfail536"
+        },
+        {
+            "name": "Sophiedp",
+            "url": "https://c.wikia.com/wiki/User:Sophiedp"
         }
     ],
     "main": "index.js",
