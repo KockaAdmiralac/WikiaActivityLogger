@@ -51,6 +51,10 @@
         {
             "name": "ChromeCircus",
             "url": "http://c.wikia.com/wiki/User:ChromeCircus"
+        },
+        {
+            "name": "Railfail536",
+            "url": "http://pl.c.wikia.com/wiki/User:Railfail536"
         }
     ],
     "main": "index.js",
