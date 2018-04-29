@@ -10,7 +10,8 @@
 const Wiki = require('./includes/wiki.js'),
       io = require('./includes/io.js'),
       fs = require('fs'),
-      util = require('./includes/util.js');
+      util = require('./includes/util.js'),
+      packageJSON = require('./package.json');
 
 /**
  * URL from which to fetch the master branch package.json
@@ -89,7 +90,7 @@ class Logger {
         } else {
             io.get(UPDATE_URL)
                 .then((function(d) {
-                    if(d.version !== process.env.npm_package_version) {
+                    if(d.version !== packageJSON.version) {
                         main.hook('updateAvailable', d.version);
                     }
                     this._initAccount();
