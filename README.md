@@ -1,18 +1,6 @@
 # WikiaActivityLogger
-A simple tool built in [Node.js](https://nodejs.org) for logging activity of a [Wikia](http://community.wikia.com) wiki through several transports (currently only supported transports are [Discord](https://discordapp.com), desktop notifications and [Slack](https://slack.com)).
+A simple tool built in [Node.js](https://nodejs.org) for logging activity of a [FANDOM](https://community.wikia.com) wiki through several transports (only supported transports were [Discord](https://discordapp.com), desktop notifications and [Slack](https://slack.com)).
 
-Documentation can be found [here](http://dev.wikia.com/wiki/WikiaActivityLogger)
+**As of 27th June 2018, the tool no longer works on FANDOM** due to the way it fetches activity (polling the MediaWiki API). A new tool, [KockaLogger](https://github.com/KockaAdmiralac/KockaLogger), has been released on July 2nd which has severely optimized activity log fetching but, unfortunately, cannot be used by everyone like WikiaActivityLogger could. If you have been hosting WikiaActivityLogger prior to 27th June 2018, contact @KockaAdmiralac if you want to set your activity logs back up.
 
-## TODO
-- Better fetch system? Like really, polling isn't a good idea at all but I've no idea what other to use
-- Caching
-- GUI. Electron. Stuff
-- Use `export` and `import` instead of `module.exports`
-- Auto-updater or at least update notification
-- Extensions. Especially abuse filter extension.
-
-## Known bugs
-- If the thread gets moved the logger still shows the old board (Wikia y u do dis to me ;-;)
-- `aflpermissionerror` error?
-- Weird issue with message type not being passed when ratelimited
-- Thread title characters are HTML entities sometimes
+Archived documentation can be found [here](http://dev.wikia.com/wiki/WikiaActivityLogger).

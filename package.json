@@ -1,9 +1,10 @@
 {
     "name": "wikia-activity-logger",
-    "version": "1.5.12",
-    "description": "Logs activity of a Wikia wiki through different transports",
+    "version": "1.6.0",
+    "description": "Logged activity of a FANDOM wiki through different transports",
     "keywords": [
         "wikia",
+        "FANDOM",
         "logger",
         "discord",
         "slack"
@@ -73,5 +74,6 @@
     },
     "engines": {
         "node": ">=0.12.0"
-    }
+    },
+    "private": true
 }

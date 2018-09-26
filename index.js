@@ -5,18 +5,7 @@
 'use strict';
 
 /**
- * Importing modules
+ * Goodbye, WikiaActivityLogger.
  */
-const Logger = require('./main.js'),
-      Controller = require('./controllers/cli/index.js');
+console.log('As of June 27th 2018, WikiaActivityLogger no longer works on FANDOM. If you have been hosting WikiaActivityLogger prior to that date, contact https://dev.wikia.com/wiki/User_talk:KockaAdmiralac to get your activity logs back up.');
 
-/**
- * Bot controller
- * @property main
- * @global
- * @type {Controller}
- */
-global.main = new Controller(new Logger());
-
-// START!!!
-global.main.initialize();
